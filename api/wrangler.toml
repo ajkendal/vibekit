@@ -1,0 +1,15 @@
+name = "vibekit-api"
+main = "src/index.ts"
+compatibility_date = "2025-01-01"
+compatibility_flags = ["nodejs_compat"]
+
+# --- D1 (the name here is what you'll use in CLI commands) ---
+[[d1_databases]]
+binding = "DB"
+database_name = "vibekit"
+database_id = "e2e6e155-4375-46a7-9d94-cb956c08c250"
+
+# --- R2 (uploads bucket; only needed when you go live) ---
+[[r2_buckets]]
+binding = "UPLOADS"
+bucket_name = "vibekit-uploads"

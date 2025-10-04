@@ -1,0 +1,7 @@
+CREATE TABLE IF NOT EXISTS themes (
+  id TEXT PRIMARY KEY,
+  name TEXT NOT NULL,
+  colors TEXT NOT NULL,
+  typography TEXT NOT NULL,
+  spacing TEXT NOT NULL
+);

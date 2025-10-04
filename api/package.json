@@ -1,0 +1,16 @@
+{
+  "name": "vibekit-api",
+  "private": true,
+  "version": "0.1.0",
+  "type": "module",
+  "devDependencies": {
+    "wrangler": "^3.73.0",
+    "@cloudflare/workers-types": "^4.20241022.0"
+  },
+  "scripts": {
+    "dev": "wrangler dev",
+    "deploy": "wrangler deploy",
+    "d1:create": "wrangler d1 create vibekit",
+    "d1:migrate": "wrangler d1 migrations apply vibekit"
+  }
+}

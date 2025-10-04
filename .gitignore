@@ -1,0 +1,10 @@
+.DS_Store
+.*.local
+*.log
+*.tmp
+node_modules/
+dist/
+.env
+.vscode/
+.vite/
+.wrangler/

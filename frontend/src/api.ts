@@ -8,6 +8,9 @@ const BASE =
     ? 'https://vibekit-api.ajkendal-openai.workers.dev'
     : '/api')
 
+// Debug: log the BASE URL being used
+console.log('API BASE URL:', BASE)
+
 export async function listThemes() {
   return (await fetch(`${BASE}/themes`)).json()
 }

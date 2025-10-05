@@ -72,7 +72,7 @@ export default function SavedThemes({
     ) {
       return `http://localhost:61341/themes/${id}/css`
     }
-    return `${apiBase}/themes/${id}/css`
+    return `https://vibekit-api.ajkendal-openai.workers.dev/themes/${id}/css`
   }
 
   function previewUrl(id: string) {
@@ -83,7 +83,7 @@ export default function SavedThemes({
     ) {
       return `http://localhost:61341/themes/${id}/preview`
     }
-    return `${apiBase}/themes/${id}/preview`
+    return `https://vibekit-api.ajkendal-openai.workers.dev/themes/${id}/preview`
   }
 
   return (

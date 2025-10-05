@@ -29,7 +29,7 @@ function resolveLogoForUI(
   const uiOrigin =
     typeof window !== 'undefined'
       ? window.location.origin
-      : 'http://localhost:5173'
+      : 'https://vibekit.pages.dev'
   const val = (raw || '').trim()
   if (!val) return ''
   const low = val.toLowerCase()

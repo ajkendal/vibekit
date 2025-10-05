@@ -11,8 +11,7 @@ ReactDOM.createRoot(document.getElementById('root')!).render(
     <ThemeProvider>
       <BrowserRouter>
         <Routes>
-          <Route path='/' element={<Navigate to='/app' replace />} />
-          <Route path='/app' element={<App />} />
+          <Route path='/' element={<App />} />
           <Route path='/docs' element={<Docs />} />
         </Routes>
       </BrowserRouter>

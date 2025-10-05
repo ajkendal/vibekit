@@ -8,3 +8,5 @@ dist/
 .vscode/
 .vite/
 .wrangler/
+
+.env.local

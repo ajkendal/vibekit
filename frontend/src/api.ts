@@ -6,11 +6,11 @@ console.log('🚀🚀🚀 VIBEKIT API URL:', BASE)
 console.log('🌍🌍🌍 HOSTNAME:', typeof window !== 'undefined' ? window.location.hostname : 'server-side')
 console.log('✅✅✅ NEW CODE DEPLOYED!')
 
-// Also log on page load
+// Add alert for testing (remove later)
 if (typeof window !== 'undefined') {
-  window.addEventListener('load', () => {
-    console.log('PAGE LOADED - API BASE:', BASE)
-  })
+  setTimeout(() => {
+    alert(`VibeKit Debug: API URL is ${BASE}`)
+  }, 1000)
 }
 
 export async function listThemes() {

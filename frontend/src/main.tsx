@@ -1,6 +1,6 @@
 import React from 'react'
 import ReactDOM from 'react-dom/client'
-import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom'
+import { BrowserRouter, Routes, Route } from 'react-router-dom'
 import { ThemeProvider } from './store/theme'
 import App from './App'
 import Docs from './pages/Docs'

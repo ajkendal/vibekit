@@ -490,9 +490,6 @@ export default function App() {
         <div className='card' style={{ flex: '1 1 360px' }}>
           <ColorControls format={colorFormat} onChangeFormat={setColorFormat} />
         </div>
-
-        <LivePreview apiBase={apiBase} />
-        <ContrastChecker />
       </section>
 
       <BrandLogo
@@ -500,6 +497,14 @@ export default function App() {
         apiBase={apiBase}
         onChange={(url) => setTheme((p: any) => ({ ...p, logoUrl: url }))}
       />
+      <section
+        className='row'
+        style={{ display: 'flex', gap: 16, flexWrap: 'wrap' }}
+      >
+        <PaletteGenerator />
+      </section>
+      <LivePreview apiBase={apiBase} />
+      <ContrastChecker />
 
       <CssVarsPanel cssVars={cssVars} />
 
@@ -512,13 +517,6 @@ export default function App() {
         onDuplicate={duplicateTheme}
         onDelete={deleteTheme}
       />
-
-      <section
-        className='row'
-        style={{ display: 'flex', gap: 16, flexWrap: 'wrap' }}
-      >
-        <PaletteGenerator />
-      </section>
     </div>
   )
 }

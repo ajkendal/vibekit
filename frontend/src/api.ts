@@ -1,7 +1,6 @@
 // @ts-ignore
-const BASE =
-  import.meta.env?.VITE_API_BASE ||
-  (import.meta.env?.PROD
+const BASE = import.meta.env?.VITE_API_BASE || 
+  (typeof window !== 'undefined' && window.location.hostname === 'vibekit.pages.dev'
     ? 'https://vibekit-api.ajkendal-openai.workers.dev'
     : '/api')
 

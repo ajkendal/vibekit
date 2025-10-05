@@ -2,7 +2,7 @@
 const BASE =
   import.meta.env?.VITE_API_BASE ||
   (import.meta.env?.PROD
-    ? 'https://vibekit.ajkendal-openai.workers.dev'
+    ? 'https://vibekit-api.ajkendal-openai.workers.dev'
     : '/api')
 
 export async function listThemes() {

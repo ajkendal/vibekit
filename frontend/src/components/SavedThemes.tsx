@@ -1,6 +1,8 @@
 import { useState } from 'react'
+import DeleteModal from './DeleteModal'
 
 type Row = { id: string; name?: string; created_at?: number | null }
+
 type Props = {
   apiBase: string
   themes: Row[]
@@ -22,6 +24,11 @@ export default function SavedThemes({
 }: Props) {
   const [busyId, setBusyId] = useState<string | null>(null)
   const [copiedCssId, setCopiedCssId] = useState<string | null>(null)
+  const [showModal, setShowModal] = useState(false)
+  const [selectedTheme, setSelectedTheme] = useState<{
+    id: string
+    name: string
+  } | null>(null)
 
   async function load(id: string) {
     if (!onLoad) return
@@ -43,20 +50,24 @@ export default function SavedThemes({
     }
   }
 
-  async function remove(id: string) {
-    if (!onDelete) return
+  function openDeleteModal(id: string, name: string) {
+    setSelectedTheme({ id, name })
+    setShowModal(true)
+  }
 
-    // Password protection
-    const requiredPassword = import.meta.env.VITE_DELETE_PASSWORD as string
-    const password = prompt('Enter password to delete theme:')
-    if (password !== requiredPassword) {
-      alert('Incorrect password')
-      return
-    }
+  function closeDeleteModal() {
+    setShowModal(false)
+    setSelectedTheme(null)
+  }
 
-    setBusyId(id)
+  async function handleDeleteConfirm() {
+    if (!onDelete || !selectedTheme) return
+
+    setBusyId(selectedTheme.id)
+    closeDeleteModal()
+
     try {
-      await onDelete(id)
+      await onDelete(selectedTheme.id)
     } finally {
       setBusyId(null)
     }
@@ -74,25 +85,23 @@ export default function SavedThemes({
   }
 
   function getCssUrl(id: string) {
-    // For copy to clipboard, use the direct API URL for external use
     if (
       location.hostname === 'localhost' ||
       location.hostname === '127.0.0.1'
     ) {
-      return `http://localhost:61341/themes/${id}/css`
+      return `http://127.0.0.1:61341/themes/${id}/css`
     }
-    return `https://vibekit-api.ajkendal-openai.workers.dev/themes/${id}/css`
+    return `${apiBase}/themes/${id}/css`
   }
 
   function previewUrl(id: string) {
-    // For preview links, use the direct API URL
     if (
       location.hostname === 'localhost' ||
       location.hostname === '127.0.0.1'
     ) {
-      return `http://localhost:61341/themes/${id}/preview`
+      return `http://127.0.0.1:61341/themes/${id}/preview`
     }
-    return `https://vibekit-api.ajkendal-openai.workers.dev/themes/${id}/preview`
+    return `${apiBase}/themes/${id}/preview`
   }
 
   return (
@@ -170,7 +179,9 @@ export default function SavedThemes({
                   className='btn'
                   style={{ background: '#ef4444' }}
                   disabled={busy}
-                  onClick={() => remove(t.id)}
+                  onClick={() =>
+                    openDeleteModal(t.id, t.name || 'Untitled Theme')
+                  }
                 >
                   Delete
                 </button>
@@ -179,6 +190,13 @@ export default function SavedThemes({
           )
         })}
       </div>
+
+      <DeleteModal
+        isOpen={showModal}
+        themeName={selectedTheme?.name || 'Untitled Theme'}
+        onClose={closeDeleteModal}
+        onConfirm={handleDeleteConfirm}
+      />
     </section>
   )
 }

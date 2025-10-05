@@ -8,7 +8,7 @@ export default defineConfig({
       '/api': {
         target: 'http://127.0.0.1:61341',
         changeOrigin: true,
-        // 👇 critical: strip the /api prefix before hitting the Worker
+
         rewrite: (path) => path.replace(/^\/api/, ''),
       },
     },

@@ -333,7 +333,7 @@ export default function App() {
   function duplicateTheme(row: ThemeRow) {
     loadTheme(row.id).then(() => {
       const name = (row.name || 'Untitled Theme') + ' (copy)'
-      setTheme((p) => ({ ...p, id: undefined, name }))
+      setTheme((p: any) => ({ ...p, id: undefined, name }))
       setThemeName(name)
     })
   }
@@ -444,7 +444,7 @@ export default function App() {
                 patch.headerLineHeight = u.lineHeight
               if (u.letterSpacing !== undefined)
                 patch.headerLetterSpacing = u.letterSpacing
-              setTheme((prev) => ({
+              setTheme((prev: any) => ({
                 ...prev,
                 typography: { ...(prev.typography || {}), ...patch },
               }))
@@ -479,7 +479,7 @@ export default function App() {
                 patch.paragraphLineHeight = u.lineHeight
               if (u.letterSpacing !== undefined)
                 patch.paragraphLetterSpacing = u.letterSpacing
-              setTheme((prev) => ({
+              setTheme((prev: any) => ({
                 ...prev,
                 typography: { ...(prev.typography || {}), ...patch },
               }))

@@ -188,7 +188,7 @@ export default {
       const rows = await env.DB.prepare(
         'SELECT id, name, created_at FROM themes ORDER BY created_at DESC'
       ).all<ThemeRow>()
-      const list = (rows.results || []).map((r) => ({
+      const list = (rows.results || []).map((r: ThemeRow) => ({
         id: r.id,
         name: r.name || 'Untitled Theme',
         created_at: r.created_at ?? null,
@@ -198,7 +198,7 @@ export default {
 
     // POST /themes (create/update) or fallback delete
     if (request.method === 'POST' && url.pathname === '/themes') {
-      const body = await request.json().catch(() => ({}))
+      const body = (await request.json().catch(() => ({}))) as any
       if (body && body._action === 'delete' && body.id) {
         await env.DB.prepare('DELETE FROM themes WHERE id = ?')
           .bind(body.id)
@@ -388,7 +388,7 @@ h1,h2,h3 {
           // D1 returns binary data as a regular array, convert to Uint8Array
           body = new Uint8Array(row.data)
         } else {
-          body = row.data?.buffer ?? row.data
+          body = (row.data as any)?.buffer ?? row.data
         }
         return new Response(body, {
           status: 200,

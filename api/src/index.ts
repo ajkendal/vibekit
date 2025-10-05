@@ -8,6 +8,8 @@ const ALLOWED_ORIGINS = new Set([
   'http://localhost:4173',
   'http://127.0.0.1:4173',
   'https://vibekit.pages.dev',
+  'https://vibekit.studio',
+  'https://www.vibekit.studio',
   // add deploy domains, e.g. 'https://vibekit.yourdomain.com'
 ])
 

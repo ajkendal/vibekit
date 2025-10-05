@@ -1,6 +1,6 @@
 // @ts-ignore
 const BASE = import.meta.env?.VITE_API_BASE || 
-  (typeof window !== 'undefined' && window.location.hostname === 'vibekit.pages.dev'
+  (typeof window !== 'undefined' && (window.location.hostname === 'vibekit.pages.dev' || window.location.hostname === 'vibekit.studio' || window.location.hostname === 'www.vibekit.studio')
     ? 'https://vibekit-api.ajkendal-openai.workers.dev'
     : '/api')
 

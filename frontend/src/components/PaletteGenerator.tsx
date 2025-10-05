@@ -1,85 +1,341 @@
-import { useState } from 'react'
+import { useMemo, useState } from 'react'
 import { useTheme } from '../store/theme'
 
-function clamp(n:number,min:number,max:number){ return Math.max(min, Math.min(max, n)) }
-function hexToRgb(hex: string){ const h=hex.replace('#',''); const b=parseInt(h.length===3?h.split('').map(c=>c+c).join(''):h,16); return {r:(b>>16)&255,g:(b>>8)&255,b:b&255} }
-function rgbToHex(r:number,g:number,b:number){ const H=(n:number)=>clamp(Math.round(n),0,255).toString(16).padStart(2,'0'); return `#${H(r)}${H(g)}${H(b)}` }
-function rgbToHsl(r:number,g:number,b:number){
-  r/=255;g/=255;b/=255; const max=Math.max(r,g,b),min=Math.min(r,g,b); let h=0,s=0,l=(max+min)/2;
-  if(max!==min){ const d=max-min; s=l>0.5?d/(2-max-min):d/(max+min)
-    switch(max){case r:h=(g-b)/d+(g<b?6:0);break;case g:h=(b-r)/d+2;break;case b:h=(r-g)/d+4;break} h/=6
-  } return {h,s,l}
+type HSL = { h: number; s: number; l: number }
+type Scheme = 'Monochromatic' | 'Analogous' | 'Complementary' | 'Triadic'
+
+function clamp(n: number, min = 0, max = 1) {
+  return Math.min(max, Math.max(min, n))
 }
-function hslToRgb(h:number,s:number,l:number){
-  let r:number,g:number,b:number
-  const hue2rgb=(p:number,q:number,t:number)=>{ if(t<0)t+=1; if(t>1)t-=1; if(t<1/6)return p+(q-p)*6*t; if(t<1/2)return q; if(t<2/3)return p+(q-p)*(2/3-t)*6; return p }
-  if(s===0){ r=g=b=l } else { const q=l<.5?l*(1+s):l+s-l*s; const p=2*l-q; r=hue2rgb(p,q,h+1/3); g=hue2rgb(p,q,h); b=hue2rgb(p,q,h-1/3) }
-  return {r:Math.round(r*255), g:Math.round(g*255), b:Math.round(b*255)}
+function rotateHue(h: number, deg: number) {
+  let v = (h + deg) % 360
+  if (v < 0) v += 360
+  return v
 }
-function shiftHue(hex:string,deg:number){ const {r,g,b}=hexToRgb(hex); const {h,s,l}=rgbToHsl(r,g,b); let nh=(h+(deg/360))%1; if(nh<0) nh+=1; const {r:rr,g:rg,b:rb}=hslToRgb(nh,s,l); return rgbToHex(rr,rg,rb) }
-function withSat(hex:string, mult:number){ const {r,g,b}=hexToRgb(hex); const hsl=rgbToHsl(r,g,b); const {r:rr,g:rg,b:rb}=hslToRgb(hsl.h, clamp(hsl.s*mult,0,1), hsl.l); return rgbToHex(rr,rg,rb) }
-function withLight(hex:string, mult:number){ const {r,g,b}=hexToRgb(hex); const hsl=rgbToHsl(r,g,b); const {r:rr,g:rg,b:rb}=hslToRgb(hsl.h, hsl.s, clamp(hsl.l*mult,0,1)); return rgbToHex(rr,rg,rb) }
 
-export default function PaletteGenerator(){
-  const { theme, setTheme } = useTheme()
-  const [seed, setSeed] = useState(theme.colors.primary || '#2563eb')
+function hexToHsl(hex: string): HSL {
+  let h = hex.trim().replace('#', '')
+  if (!/^[0-9a-fA-F]{3,6}$/.test(h)) h = '2563eb'
+  if (h.length === 3)
+    h = h
+      .split('')
+      .map((c) => c + c)
+      .join('')
+  const r = parseInt(h.slice(0, 2), 16) / 255
+  const g = parseInt(h.slice(2, 4), 16) / 255
+  const b = parseInt(h.slice(4, 6), 16) / 255
+  const max = Math.max(r, g, b),
+    min = Math.min(r, g, b)
+  let hDeg = 0
+  const l = (max + min) / 2
+  const d = max - min
+  const s = d === 0 ? 0 : d / (1 - Math.abs(2 * l - 1))
+  if (d !== 0) {
+    switch (max) {
+      case r:
+        hDeg = ((g - b) / d) % 6
+        break
+      case g:
+        hDeg = (b - r) / d + 2
+        break
+      case b:
+        hDeg = (r - g) / d + 4
+        break
+    }
+    hDeg *= 60
+    if (hDeg < 0) hDeg += 360
+  }
+  return { h: hDeg, s: clamp(s), l: clamp(l) }
+}
+function hslToHex({ h, s, l }: HSL): string {
+  s = clamp(s)
+  l = clamp(l)
+  const c = (1 - Math.abs(2 * l - 1)) * s
+  const x = c * (1 - Math.abs(((h / 60) % 2) - 1))
+  const m = l - c / 2
+  let r = 0,
+    g = 0,
+    b = 0
+  if (0 <= h && h < 60) {
+    r = c
+    g = x
+    b = 0
+  } else if (60 <= h && h < 120) {
+    r = x
+    g = c
+    b = 0
+  } else if (120 <= h && h < 180) {
+    r = 0
+    g = c
+    b = x
+  } else if (180 <= h && h < 240) {
+    r = 0
+    g = x
+    b = c
+  } else if (240 <= h && h < 300) {
+    r = x
+    g = 0
+    b = c
+  } else {
+    r = c
+    g = 0
+    b = x
+  }
+  const R = Math.round((r + m) * 255)
+    .toString(16)
+    .padStart(2, '0')
+  const G = Math.round((g + m) * 255)
+    .toString(16)
+    .padStart(2, '0')
+  const B = Math.round((b + m) * 255)
+    .toString(16)
+    .padStart(2, '0')
+  return `#${R}${G}${B}`.toLowerCase()
+}
+const lighten = (hsl: HSL, amt = 0.1): HSL => ({
+  ...hsl,
+  l: clamp(hsl.l + amt),
+})
+const darken = (hsl: HSL, amt = 0.1): HSL => ({ ...hsl, l: clamp(hsl.l - amt) })
+const saturate = (hsl: HSL, amt = 0.1): HSL => ({
+  ...hsl,
+  s: clamp(hsl.s + amt),
+})
 
-  const variants = [
-    { name: 'Triadic', gen: (c:string) => ({
-      primary: c,
-      secondary: shiftHue(c, 120),
-      tertiary: shiftHue(c, -120)
-    })},
-    { name: 'Analogous', gen: (c:string) => ({
-      primary: c,
-      secondary: shiftHue(c, 30),
-      tertiary: shiftHue(c, -30)
-    })},
-    { name: 'Complementary', gen: (c:string) => ({
-      primary: c,
-      secondary: withSat(shiftHue(c, 180), 0.9),
-      tertiary: withLight(shiftHue(c, 180), 1.15)
-    })}
-  ]
+function deriveNeutralsFrom(baseHex: string) {
+  const b = hexToHsl(baseHex)
+  const desat: HSL = { h: b.h, s: clamp(b.s * 0.08), l: b.l }
+  const light = { ...desat, l: 0.96 }
+  const dark = { ...desat, l: 0.14 }
+  return { neutral_light: hslToHex(light), neutral_dark: hslToHex(dark) }
+}
 
-  function applyPalette(p:{primary:string,secondary:string,tertiary:string}){
-    setTheme(t => ({
-      ...t,
-      colors: {
-        ...t.colors,
-        primary: p.primary, secondary: p.secondary, tertiary: p.tertiary,
-        // suggest neutrals based on seed
-        neutral_light: '#ffffff',
-        neutral_dark: '#0b0f14'
+function buildPalette(baseHex: string, scheme: Scheme) {
+  const base = hexToHsl(baseHex)
+
+  if (scheme === 'Monochromatic') {
+    const primary = base
+    const secondary = {
+      h: base.h,
+      s: clamp(base.s * 0.65),
+      l: clamp(base.l * 1.15),
+    }
+    const tertiary = {
+      h: base.h,
+      s: clamp(base.s * 0.95),
+      l: clamp(base.l * 0.78),
+    }
+    return {
+      primary: hslToHex(primary),
+      secondary: hslToHex(secondary),
+      tertiary: hslToHex(tertiary),
+    }
+  }
+
+  if (scheme === 'Analogous') {
+    const primary = base
+    const secondary = { ...base, h: rotateHue(base.h, -30) }
+    const tertiary = { ...base, h: rotateHue(base.h, +30) }
+    return {
+      primary: hslToHex(primary),
+      secondary: hslToHex(saturate(secondary, 0.05)),
+      tertiary: hslToHex(lighten(tertiary, 0.05)),
+    }
+  }
+
+  if (scheme === 'Complementary') {
+    const primary = base
+    const secondary = { ...base, h: rotateHue(base.h, 180) }
+    const tertiary = { ...base, h: rotateHue(base.h, 160) }
+    return {
+      primary: hslToHex(primary),
+      secondary: hslToHex(secondary),
+      tertiary: hslToHex(lighten(tertiary, 0.08)),
+    }
+  }
+
+  // Triadic
+  const primary = base
+  const secondary = { ...base, h: rotateHue(base.h, 120) }
+  const tertiary = { ...base, h: rotateHue(base.h, -120) }
+  return {
+    primary: hslToHex(primary),
+    secondary: hslToHex(saturate(secondary, 0.04)),
+    tertiary: hslToHex(darken(tertiary, 0.04)),
+  }
+}
+
+export default function PaletteGenerator() {
+  const { theme, setTheme } = useTheme() as {
+    theme: any
+    setTheme: (updater: any) => void
+  }
+  const [base, setBase] = useState<string>(theme.colors?.primary || '#2563eb')
+  const [scheme, setScheme] = useState<Scheme>('Monochromatic')
+  const [deriveNeutrals, setDeriveNeutrals] = useState<boolean>(false)
+
+  const result = useMemo(() => buildPalette(base, scheme), [base, scheme])
+
+  function applyToTheme() {
+    setTheme((prev: any) => {
+      const next = {
+        ...prev,
+        colors: {
+          ...(prev.colors || {}),
+          primary: result.primary,
+          secondary: result.secondary,
+          tertiary: result.tertiary,
+        },
       }
-    }))
+      if (deriveNeutrals) {
+        const ns = deriveNeutralsFrom(result.primary)
+        next.colors.neutral_light = ns.neutral_light
+        next.colors.neutral_dark = ns.neutral_dark
+      }
+      return next
+    })
+  }
+
+  function randomize() {
+    const rand = `#${Math.floor(Math.random() * 0xffffff)
+      .toString(16)
+      .padStart(6, '0')}`
+    setBase(rand)
   }
 
   return (
-    <div className="card">
+    <section className='card' style={{ flex: '1 1 420px' }}>
       <strong>Generate Palette</strong>
-      <div className="row">
-        <input type="color" value={seed} onChange={e=>setSeed(e.target.value)} />
-        <input value={seed} onChange={e=>setSeed(e.target.value)} />
+
+      <div
+        style={{
+          display: 'grid',
+          gridTemplateColumns: '1fr 1fr',
+          gap: 10,
+          marginTop: 8,
+        }}
+      >
+        <label style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+          <span style={{ width: 120 }}>Base Color</span>
+          <input
+            type='color'
+            value={base}
+            onChange={(e) => setBase(e.target.value)}
+            style={{
+              width: 44,
+              height: 28,
+              padding: 0,
+              border: '1px solid #e5e7eb',
+              borderRadius: 6,
+            }}
+          />
+          <input
+            type='text'
+            value={base}
+            onChange={(e) => setBase(e.target.value)}
+            placeholder='#RRGGBB'
+            style={{
+              flex: 1,
+              minWidth: 140,
+              padding: '8px 10px',
+              border: '1px solid #e5e7eb',
+              borderRadius: 6,
+            }}
+          />
+        </label>
+
+        <label style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+          <span style={{ width: 120 }}>Scheme</span>
+          <select
+            value={scheme}
+            onChange={(e) => setScheme(e.target.value as Scheme)}
+            style={{ flex: 1 }}
+          >
+            <option value='Monochromatic'>Monochromatic</option>
+            <option value='Analogous'>Analogous</option>
+            <option value='Complementary'>Complementary</option>
+            <option value='Triadic'>Triadic</option>
+          </select>
+        </label>
       </div>
-      <div className="row" style={{flexWrap:'wrap', gap:12}}>
-        {variants.map(v => {
-          const p = v.gen(seed)
+
+      {/* Derive neutrals toggle */}
+      <label
+        className='chip'
+        style={{
+          marginTop: 10,
+          display: 'inline-flex',
+          alignItems: 'center',
+          gap: 8,
+        }}
+      >
+        <input
+          type='checkbox'
+          checked={deriveNeutrals}
+          onChange={() => setDeriveNeutrals((v) => !v)}
+        />
+        Also derive Neutrals (Light/Dark)
+      </label>
+
+      {/* Preview swatches */}
+      <div
+        style={{
+          display: 'grid',
+          gridTemplateColumns: 'repeat(3, 1fr)',
+          gap: 10,
+          marginTop: 12,
+        }}
+      >
+        {(['primary', 'secondary', 'tertiary'] as const).map((k) => {
+          const value = (result as any)[k]
           return (
-            <div key={v.name} className="card" style={{minWidth:220}}>
-              <div style={{display:'grid', gap:6}}>
-                <div style={{display:'flex', gap:6}}>
-                  <span style={{background:p.primary, width:24, height:24, borderRadius:6}} />
-                  <span style={{background:p.secondary, width:24, height:24, borderRadius:6}} />
-                  <span style={{background:p.tertiary, width:24, height:24, borderRadius:6}} />
-                </div>
-                <small><strong>{v.name}</strong></small>
-                <button className="btn" onClick={()=>applyPalette(p)}>Apply</button>
+            <div
+              key={k}
+              style={{
+                border: '1px solid #e5e7eb',
+                borderRadius: 10,
+                overflow: 'hidden',
+              }}
+            >
+              <div style={{ background: value, height: 56 }} />
+              <div
+                style={{
+                  padding: 8,
+                  display: 'flex',
+                  justifyContent: 'space-between',
+                  alignItems: 'center',
+                }}
+              >
+                <span style={{ textTransform: 'capitalize' }}>{k}</span>
+                <code
+                  style={{
+                    padding: '2px 6px',
+                    borderRadius: 6,
+                    background: '#f3f4f6',
+                    color: '#111',
+                  }}
+                >
+                  {value}
+                </code>
               </div>
             </div>
           )
         })}
       </div>
-    </div>
+
+      <div style={{ display: 'flex', gap: 8, marginTop: 12, flexWrap: 'wrap' }}>
+        <button type='button' className='btn' onClick={applyToTheme}>
+          Apply to Theme
+        </button>
+        <button type='button' className='btn' onClick={randomize}>
+          Randomize Base
+        </button>
+      </div>
+
+      <small style={{ display: 'block', marginTop: 8, opacity: 0.7 }}>
+        All schemes can optionally derive Neutral (Light/Dark) from the Primary
+        hue by desaturating &amp; adjusting lightness.
+      </small>
+    </section>
   )
 }

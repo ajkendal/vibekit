@@ -1,64 +1,73 @@
-import { useMemo, useState } from 'react'
+import { useMemo } from 'react'
 import { useGoogleFontsCatalog } from '../hooks/useGoogleFontsCatalog'
+
+type Props = {
+  label: string
+  family: string
+  weight: number
+  italic: boolean
+  lineHeight?: number
+  letterSpacing?: number
+  onChange: (
+    update: Partial<{
+      family: string
+      weight: number
+      italic: boolean
+      lineHeight: number
+      letterSpacing: number
+    }>
+  ) => void
+}
 
 const ALL_WEIGHTS = [100, 200, 300, 400, 500, 600, 700, 800, 900]
 
 export default function FontPicker({
   label,
-  value,
-  onChangeFont,
-  weights,
-  onToggleWeight,
+  family,
+  weight,
   italic,
-  onToggleItalic,
-}: {
-  label: string
-  value: string
-  onChangeFont: (f: string) => void
-  weights: number[]
-  onToggleWeight: (w: number) => void
-  italic: boolean
-  onToggleItalic: () => void
-}) {
+  lineHeight = 1.4,
+  letterSpacing = 0,
+  onChange,
+}: Props) {
   const { fonts, map } = useGoogleFontsCatalog()
-  const [q, setQ] = useState('')
 
-  const filtered = useMemo(() => {
-    const qq = q.trim().toLowerCase()
-    const list = fonts.map((f) => f.family)
-    return !qq ? list : list.filter((name) => name.toLowerCase().includes(qq))
-  }, [fonts, q])
+  // Alphabetical family list
+  const families = useMemo(
+    () =>
+      fonts.length
+        ? fonts.map((f) => f.family).sort((a, b) => a.localeCompare(b))
+        : ['Inter'],
+    [fonts]
+  )
 
+  // Supported weights for selected family (ensure 400)
   const supportedWeights = useMemo(() => {
-    const f = map.get(value)
-    if (!f) return ALL_WEIGHTS
+    const f = map.get(family)
+    if (!f) return ensure400(ALL_WEIGHTS)
     const nums = new Set<number>()
     for (const v of f.variants) {
       const m = v.match(/^(\d{3})/)
       if (m) nums.add(parseInt(m[1], 10))
     }
-    const arr = Array.from(nums)
-    return arr.length ? arr.sort((a, b) => a - b) : ALL_WEIGHTS
-  }, [value, map])
+    const arr = Array.from(nums).sort((a, b) => a - b)
+    return ensure400(arr.length ? arr : ALL_WEIGHTS)
+  }, [family, map])
 
-  const supportsItalic = useMemo(() => {
-    const f = map.get(value)
-    return !!f?.variants?.some((v) => /italic$/.test(v))
-  }, [value, map])
+  const radioName = `weight-${label.replace(/\s+/g, '-').toLowerCase()}`
 
   return (
     <div className='card'>
       <strong>{label}</strong>
 
-      {/* Font family + search */}
-      <div className='row'>
-        <input
-          placeholder='Search fonts…'
-          value={q}
-          onChange={(e) => setQ(e.target.value)}
-        />
-        <select value={value} onChange={(e) => onChangeFont(e.target.value)}>
-          {filtered.map((f) => (
+      {/* Family */}
+      <div className='row' style={{ gap: 8, marginTop: 8 }}>
+        <select
+          value={family}
+          onChange={(e) => onChange({ family: e.target.value })}
+          style={{ flex: 1 }}
+        >
+          {families.map((f) => (
             <option key={f} value={f}>
               {f}
             </option>
@@ -66,32 +75,10 @@ export default function FontPicker({
         </select>
       </div>
 
-      {/* Styles: Normal / Italic */}
-      <div
-        className='row'
-        style={{ gap: 8, alignItems: 'center', flexWrap: 'wrap' }}
-      >
-        <span style={{ opacity: 0.75, fontSize: 12 }}>Style</span>
-        <span className='chip active'>Normal</span>
-        <button
-          type='button'
-          className={`chip ${italic ? 'active' : ''}`}
-          onClick={onToggleItalic}
-          disabled={!supportsItalic}
-          title={
-            supportsItalic
-              ? 'Toggle italic'
-              : 'This family has no italic variant'
-          }
-        >
-          Italic
-        </button>
-      </div>
-
-      {/* Weight chips */}
-      <div className='row' style={{ gap: 6, flexWrap: 'wrap' }}>
+      {/* Single weight (radio chips) */}
+      <div className='row' style={{ gap: 6, flexWrap: 'wrap', marginTop: 8 }}>
         {supportedWeights.map((w) => {
-          const active = weights.includes(w)
+          const active = w === weight
           return (
             <label
               key={w}
@@ -99,12 +86,15 @@ export default function FontPicker({
               style={{
                 background: active ? '#2563eb' : '#fff',
                 color: active ? '#fff' : '#111',
+                cursor: 'pointer',
               }}
+              title={`Weight ${w}`}
             >
               <input
-                type='checkbox'
+                type='radio'
+                name={radioName}
                 checked={active}
-                onChange={() => onToggleWeight(w)}
+                onChange={() => onChange({ weight: w })}
                 style={{ display: 'none' }}
               />
               {w}
@@ -113,10 +103,87 @@ export default function FontPicker({
         })}
       </div>
 
-      <small>
-        Selected: {weights.join(', ') || '—'}
-        {italic ? ' (italic enabled)' : ''}
-      </small>
+      {/* Italic */}
+      <div
+        className='row'
+        style={{ gap: 8, marginTop: 8, alignItems: 'center' }}
+      >
+        <label
+          className='chip'
+          style={{ display: 'flex', alignItems: 'center', gap: 6 }}
+        >
+          <input
+            type='checkbox'
+            checked={italic}
+            onChange={() => onChange({ italic: !italic })}
+          />
+          Italic
+        </label>
+        <small>
+          Selected: {weight}
+          {italic ? ' italic' : ''}
+        </small>
+      </div>
+
+      {/* Line height & Letter spacing */}
+      <div
+        className='row'
+        style={{
+          display: 'grid',
+          gridTemplateColumns: '1fr',
+          gap: 10,
+          marginTop: 8,
+        }}
+      >
+        <label
+          style={{
+            display: 'grid',
+            gridTemplateColumns: '120px 1fr 64px',
+            alignItems: 'center',
+            gap: 8,
+          }}
+        >
+          <span>Line Height</span>
+          <input
+            type='range'
+            min={1.0}
+            max={2.2}
+            step={0.05}
+            value={lineHeight}
+            onChange={(e) =>
+              onChange({ lineHeight: parseFloat(e.target.value) })
+            }
+          />
+          <code style={{ textAlign: 'right' }}>{lineHeight.toFixed(2)}</code>
+        </label>
+        <label
+          style={{
+            display: 'grid',
+            gridTemplateColumns: '120px 1fr 64px',
+            alignItems: 'center',
+            gap: 8,
+          }}
+        >
+          <span>Letter Spacing</span>
+          <input
+            type='range'
+            min={-0.05}
+            max={0.2}
+            step={0.01}
+            value={letterSpacing}
+            onChange={(e) =>
+              onChange({ letterSpacing: parseFloat(e.target.value) })
+            }
+          />
+          <code style={{ textAlign: 'right' }}>
+            {letterSpacing.toFixed(2)}em
+          </code>
+        </label>
+      </div>
     </div>
   )
+}
+
+function ensure400(ws: number[]) {
+  return ws.includes(400) ? ws : [...ws, 400].sort((a, b) => a - b)
 }

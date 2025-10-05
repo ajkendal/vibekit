@@ -6,7 +6,7 @@ export default defineConfig({
   server: {
     proxy: {
       '/api': {
-        target: 'http://127.0.0.1:52754',
+        target: 'http://127.0.0.1:61341',
         changeOrigin: true,
         // 👇 critical: strip the /api prefix before hitting the Worker
         rewrite: (path) => path.replace(/^\/api/, ''),

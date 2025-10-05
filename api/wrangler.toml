@@ -11,5 +11,9 @@ database_id = "e2e6e155-4375-46a7-9d94-cb956c08c250"
 
 # --- R2 (uploads bucket; only needed when you go live) ---
 [[r2_buckets]]
-binding = "UPLOADS"
-bucket_name = "vibekit-uploads"
+binding = "LOGOS"
+bucket_name = "vibekit-logos"
+preview_bucket_name = "vibekit-logos-dev"
+
+[vars]
+FRONTEND_ORIGIN = "https://your-frontend-domain.com"

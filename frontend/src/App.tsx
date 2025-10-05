@@ -3,16 +3,20 @@ import ColorControls from './components/ColorControls'
 import LivePreview from './components/LivePreview'
 import PaletteGenerator from './components/PaletteGenerator'
 import FontPicker from './components/FontPicker'
+import SavedThemes from './components/SavedThemes'
+import BrandLogo from './components/BrandLogo'
+import CssVarsPanel from './components/CssVarsPanel'
+import ThemeHeader from './components/ThemeHeader'
+import ContrastChecker from './components/ContrastChecker'
 import { useTheme } from './store/theme'
 
 type ThemeRow = { id: string; name?: string; [k: string]: any }
-
-// ───────────────────────── helpers ─────────────────────────
+type ColorFormat = 'hex' | 'rgb' | 'hsl'
 
 const DEFAULT_API_BASE = (() => {
   const h = location.hostname
-  if (h === 'localhost' || h === '127.0.0.1' || h === '0.0.0.0')
-    return 'http://127.0.0.1:8787'
+  // Always use Vite proxy in development to avoid CORS and port issues
+  if (h === 'localhost' || h === '127.0.0.1' || h === '0.0.0.0') return '/api'
   return '/api'
 })()
 
@@ -35,9 +39,7 @@ function gfParam(
   italic: boolean
 ) {
   if (!family) return ''
-  const ws = (weights && weights.length ? weights : [400, 600, 700]).sort(
-    (a, b) => a - b
-  )
+  const ws = (weights && weights.length ? weights : [400]).sort((a, b) => a - b)
   if (italic) {
     const pairs = [...ws.map((w) => `0,${w}`), ...ws.map((w) => `1,${w}`)]
     return `${encodeURIComponent(family)}:ital,wght@${pairs.join(';')}`
@@ -45,27 +47,92 @@ function gfParam(
   return `${encodeURIComponent(family)}:wght@${ws.join(';')}`
 }
 
-function themeToCssVars(theme: any) {
-  const lines: string[] = []
+/* ── color formatting for CSS vars ───────────────────────── */
+
+function hexToRgb(hex: string) {
+  const m = (hex || '').trim().match(/^#?([a-f\d]{3}|[a-f\d]{6})$/i)
+  if (!m) return null
+  let h = m[1].toLowerCase()
+  if (h.length === 3)
+    h = h
+      .split('')
+      .map((c) => c + c)
+      .join('')
+  const n = parseInt(h, 16)
+  return { r: (n >> 16) & 255, g: (n >> 8) & 255, b: n & 255 }
+}
+
+function hexToHsl(hex: string) {
+  const rgb = hexToRgb(hex) || { r: 37, g: 99, b: 235 }
+  let { r, g, b } = rgb
+  r /= 255
+  g /= 255
+  b /= 255
+  const max = Math.max(r, g, b),
+    min = Math.min(r, g, b)
+  let h = 0,
+    s = 0,
+    l = (max + min) / 2
+  const d = max - min
+  if (d !== 0) {
+    s = d / (1 - Math.abs(2 * l - 1))
+    switch (max) {
+      case r:
+        h = ((g - b) / d) % 6
+        break
+      case g:
+        h = (b - r) / d + 2
+        break
+      case b:
+        h = (r - g) / d + 4
+        break
+    }
+    h *= 60
+    if (h < 0) h += 360
+  }
+  return {
+    h: Math.round(h),
+    s: Math.round(Math.min(1, Math.max(0, s)) * 100),
+    l: Math.round(Math.min(1, Math.max(0, l)) * 100),
+  }
+}
+
+function formatColor(hex: string, fmt: ColorFormat) {
+  const h = (hex || '').toLowerCase()
+  if (fmt === 'hex') return h.startsWith('#') ? h : `#${h}`
+  if (fmt === 'rgb') {
+    const rgb = hexToRgb(h) || { r: 37, g: 99, b: 235 }
+    return `rgb(${rgb.r}, ${rgb.g}, ${rgb.b})`
+  }
+  const { h: H, s, l } = hexToHsl(h)
+  return `hsl(${H} ${s}% ${l}%)`
+}
+
+export function themeToCssVars(theme: any, fmt: ColorFormat = 'hex') {
   const c = theme?.colors || {}
   const t = theme?.typography || {}
-  const s = theme?.spacing || {}
+  const lines: string[] = []
   const push = (k: string, v?: string | number) =>
     v != null && lines.push(`${k}: ${v};`)
 
-  ;[
-    'neutral_light',
-    'neutral_dark',
-    'surface',
-    'text',
-    'primary',
-    'secondary',
-    'tertiary',
-    'warning',
-    'danger',
-    'caution',
-    'success',
-  ].forEach((k) => c[k] && push(`--color-${k.replace('_', '-')}`, c[k]))
+  // ✅ Always include all keys (with defaults if missing)
+  const DEFAULTS: Record<string, string> = {
+    neutral_light: '#ffffff',
+    neutral_dark: '#111111',
+    primary: '#2563eb',
+    secondary: '#6b7280',
+    tertiary: '#9333ea',
+    danger: '#ef4444',
+    warning: '#f59e0b',
+    caution: '#f97316',
+    success: '#10b981',
+  }
+  const KEYS = Object.keys(DEFAULTS)
+
+  KEYS.forEach((k) => {
+    const hex = (c as any)[k] ?? DEFAULTS[k]
+    push(`--color-${k.replace('_', '-')}`, formatColor(hex, fmt))
+  })
 
   if (typeof t.base === 'number') push('--font-base', `${t.base}px`)
   if (typeof t.ratio === 'number') push('--font-ratio', String(t.ratio))
@@ -79,12 +146,19 @@ function themeToCssVars(theme: any) {
       '--font-paragraph',
       `'${t.paragraphFont}', system-ui, -apple-system, Segoe UI, Roboto, sans-serif`
     )
-  if (typeof s.base === 'number') push('--space-base', `${s.base}px`)
+  if (typeof t.headerLineHeight === 'number')
+    push('--line-height-header', String(t.headerLineHeight))
+  if (typeof t.paragraphLineHeight === 'number')
+    push('--line-height-paragraph', String(t.paragraphLineHeight))
+  if (typeof t.headerLetterSpacing === 'number')
+    push('--letter-spacing-header', `${t.headerLetterSpacing}em`)
+  if (typeof t.paragraphLetterSpacing === 'number')
+    push('--letter-spacing-paragraph', `${t.paragraphLetterSpacing}em`)
 
   return `:root{\n  ${lines.join('\n  ')}\n}`
 }
+/* ───────────────────────────────────────────────────────── */
 
-// robust id generator for “Save New Theme”
 function newId() {
   // @ts-ignore
   if (typeof crypto !== 'undefined' && crypto.randomUUID) {
@@ -93,80 +167,22 @@ function newId() {
   return `${Date.now()}-${Math.random().toString(36).slice(2)}`
 }
 
-const displayNameOf = (t: any) =>
-  typeof t?.name === 'string' && t.name.trim()
-    ? t.name.trim()
-    : 'Untitled Theme'
-
-async function fetchArray(url: string): Promise<any[] | null> {
-  try {
-    const res = await fetch(url)
-    if (!res.ok) return null
-    const j = await res.json()
-    return Array.isArray(j)
-      ? j
-      : Array.isArray((j as any)?.results)
-      ? (j as any).results
-      : []
-  } catch {
-    return null
-  }
-}
-
-// Clipboard helpers (robust copy + fallback + feedback)
-function canUseClipboard() {
-  return (
-    typeof navigator !== 'undefined' &&
-    !!navigator.clipboard &&
-    typeof navigator.clipboard.writeText === 'function'
-  )
-}
-
-async function copyTextStrong(text: string) {
-  try {
-    if (canUseClipboard()) {
-      await navigator.clipboard.writeText(text)
-      return true
-    }
-    const ta = document.createElement('textarea')
-    ta.value = text
-    ta.setAttribute('readonly', 'true')
-    ta.style.position = 'fixed'
-    ta.style.opacity = '0'
-    ta.style.pointerEvents = 'none'
-    document.body.appendChild(ta)
-    ta.select()
-    const ok = document.execCommand('copy')
-    document.body.removeChild(ta)
-    return ok
-  } catch {
-    try {
-      window.prompt('Copy this URL:', text)
-    } catch {}
-    return false
-  }
-}
-
-// ───────────────────────── component ─────────────────────────
-
 export default function App() {
   const { theme, setTheme } = useTheme()
 
-  const [saving, setSaving] = useState(false)
+  const [apiBase, setApiBase] = useState<string>(DEFAULT_API_BASE)
   const [themes, setThemes] = useState<ThemeRow[]>([])
   const [loading, setLoading] = useState(true)
   const [err, setErr] = useState<string | null>(null)
+
   const [themeName, setThemeName] = useState<string>(theme.name || '')
-  const [copied, setCopied] = useState<string | null>(null)
-
-  // ✅ Track which API base actually works; use it everywhere (prevents "Not found" URLs)
-  const [apiBase, setApiBase] = useState<string>(DEFAULT_API_BASE)
-
   useEffect(() => {
     setThemeName(theme.name || '')
   }, [theme.name])
 
-  // Try multiple endpoints so Saved Themes works in dev & prod; remember the working base
+  // NEW: color variable display format (affects ColorControls & CSS Vars panel)
+  const [colorFormat, setColorFormat] = useState<ColorFormat>('hex')
+
   async function fetchThemes() {
     setLoading(true)
     setErr(null)
@@ -177,44 +193,49 @@ export default function App() {
     ]
     let results: any[] = []
     for (const u of candidates) {
-      const arr = await fetchArray(u)
-      if (arr && arr.length) {
-        results = arr
-        // set apiBase based on the successful candidate
-        if (u.endsWith('/themes')) setApiBase(u.replace(/\/themes$/, ''))
-        break
-      }
+      try {
+        const res = await fetch(u)
+        if (!res.ok) continue
+        const j = await res.json()
+        if (Array.isArray(j)) {
+          if (u.endsWith('/themes')) setApiBase(u.replace(/\/themes$/, ''))
+          results = j
+          break
+        }
+      } catch {}
     }
     setThemes(results)
     setLoading(false)
   }
-
   useEffect(() => {
     fetchThemes()
   }, [])
 
-  // Fonts (with italics)
+  // Typography state reads
   const headerFamily = theme.typography?.headerFont || 'Inter'
-  const headerWeights = theme.typography?.headerWeights || [600, 700]
+  const headerWeight =
+    (theme.typography?.headerWeights?.[0] as number | undefined) ?? 400
   const headerItalic = !!theme.typography?.headerItalic
+  const headerLH =
+    (theme.typography?.headerLineHeight as number | undefined) ?? 1.25
+  const headerLS =
+    (theme.typography?.headerLetterSpacing as number | undefined) ?? 0
 
   const paragraphFamily = theme.typography?.paragraphFont || 'Inter'
-  const paragraphWeights = theme.typography?.paragraphWeights || [400, 500]
+  const paragraphWeight =
+    (theme.typography?.paragraphWeights?.[0] as number | undefined) ?? 400
   const paragraphItalic = !!theme.typography?.paragraphItalic
+  const paragraphLH =
+    (theme.typography?.paragraphLineHeight as number | undefined) ?? 1.6
+  const paragraphLS =
+    (theme.typography?.paragraphLetterSpacing as number | undefined) ?? 0
 
-  function setTypography(patch: Partial<typeof theme.typography>) {
-    setTheme((prev: any) => ({
-      ...prev,
-      typography: { ...(prev.typography || {}), ...patch },
-    }))
-  }
-
-  // Google Fonts link
+  // Google Fonts
   useEffect(() => {
-    const h = gfParam(headerFamily, headerWeights, headerItalic)
+    const h = gfParam(headerFamily, [headerWeight], headerItalic)
     const p =
       paragraphFamily && paragraphFamily !== headerFamily
-        ? gfParam(paragraphFamily, paragraphWeights, paragraphItalic)
+        ? gfParam(paragraphFamily, [paragraphWeight], paragraphItalic)
         : ''
     const fams = [h, p].filter(Boolean)
     if (!fams.length) return
@@ -231,14 +252,14 @@ export default function App() {
     link.href = href
   }, [
     headerFamily,
-    headerWeights,
+    headerWeight,
     headerItalic,
     paragraphFamily,
-    paragraphWeights,
+    paragraphWeight,
     paragraphItalic,
   ])
 
-  // 🔵 Italic preview toggle: inject a tiny style so you see italics immediately
+  // Italic preview (global)
   useEffect(() => {
     let style = document.getElementById(
       'vk-italic-style'
@@ -258,13 +279,12 @@ export default function App() {
   }, [headerItalic, paragraphItalic])
 
   // Save / Update
+  const [saving, setSaving] = useState(false)
   async function saveTheme(asNew: boolean) {
     if (saving) return
     setSaving(true)
-
     const raw = (themeName || theme.name || '').trim()
     const safeName = raw || `Untitled Theme ${new Date().toLocaleDateString()}`
-
     const body: any = {
       name: safeName,
       logoUrl: theme.logoUrl || null,
@@ -272,20 +292,20 @@ export default function App() {
       typography: {
         ...(theme.typography || {}),
         headerFont: headerFamily,
-        headerWeights,
+        headerWeights: [headerWeight],
         headerItalic,
+        headerLineHeight: headerLH,
+        headerLetterSpacing: headerLS,
         paragraphFont: paragraphFamily,
-        paragraphWeights,
+        paragraphWeights: [paragraphWeight],
         paragraphItalic,
+        paragraphLineHeight: paragraphLH,
+        paragraphLetterSpacing: paragraphLS,
       },
       spacing: theme.spacing || {},
     }
-
-    if (asNew) {
-      body.id = newId() // NEW row
-    } else if (theme.id) {
-      body.id = theme.id // update existing
-    }
+    if (asNew) body.id = newId()
+    else if (theme.id) body.id = theme.id
 
     try {
       const resp = await fetch(`${apiBase}/themes`, {
@@ -294,7 +314,6 @@ export default function App() {
         body: JSON.stringify(body),
       })
       const created = await getJson<any>(resp)
-
       setTheme((prev: any) => ({ ...prev, id: created.id, name: created.name }))
       setThemeName(created.name)
       await fetchThemes()
@@ -309,83 +328,92 @@ export default function App() {
     setTheme((prev: any) => ({ ...prev, ...t }))
   }
 
-  // robust copy feedback
-  async function handleCopy(text: string, key: string = text) {
-    const ok = await copyTextStrong(text)
-    if (ok) {
-      setCopied(key)
-      setTimeout(() => setCopied(null), 1500)
-    }
+  function duplicateTheme(row: ThemeRow) {
+    loadTheme(row.id).then(() => {
+      const name = (row.name || 'Untitled Theme') + ' (copy)'
+      setTheme((p) => ({ ...p, id: undefined, name }))
+      setThemeName(name)
+    })
   }
 
-  // Brand Logo (built-ins + upload)
-  const PRIMARY_LOGO = '/brand/vibekit-logo-primary.png'
-  const MONO_WHITE = '/brand/vibekit-logo-mono-white.png'
-  const MONO_BLACK = '/brand/vibekit-logo-mono-black.png'
-
-  async function onUploadLogo(file: File) {
-    const fd = new FormData()
-    fd.append('file', file)
-    const resp = await fetch(`${apiBase}/uploads/logo`, {
+  async function deleteTheme(id: string) {
+    try {
+      const r = await fetch(`${apiBase}/themes/${id}`, {
+        method: 'DELETE',
+        headers: { 'content-type': 'application/json' },
+      })
+      if (r.ok) {
+        await fetchThemes()
+        return
+      }
+    } catch {}
+    const r2 = await fetch(`${apiBase}/themes`, {
       method: 'POST',
-      body: fd,
+      headers: { 'content-type': 'application/json' },
+      body: JSON.stringify({ id, _action: 'delete' }),
     })
-    const j = await getJson<any>(resp)
-    if (j?.url) setTheme((prev: any) => ({ ...prev, logoUrl: j.url }))
+    if (!r2.ok) {
+      let msg = 'Failed to delete theme'
+      try {
+        const j = await r2.json()
+        if (j?.error) msg = j.error
+      } catch {}
+      throw new Error(msg)
+    }
+    await fetchThemes()
   }
 
   const cssVars = useMemo(
     () =>
-      themeToCssVars({
-        ...theme,
-        typography: {
-          ...(theme.typography || {}),
-          headerFont: headerFamily,
-          headerWeights,
-          paragraphFont: paragraphFamily,
-          paragraphWeights,
+      themeToCssVars(
+        {
+          ...theme,
+          typography: {
+            ...(theme.typography || {}),
+            headerFont: headerFamily,
+            headerWeights: [headerWeight],
+            headerLineHeight: headerLH,
+            headerLetterSpacing: headerLS,
+            paragraphFont: paragraphFamily,
+            paragraphWeights: [paragraphWeight],
+            paragraphLineHeight: paragraphLH,
+            paragraphLetterSpacing: paragraphLS,
+          },
         },
-      }),
-    [theme, headerFamily, headerWeights, paragraphFamily, paragraphWeights]
+        colorFormat
+      ),
+    [
+      theme,
+      headerFamily,
+      headerWeight,
+      headerLH,
+      headerLS,
+      paragraphFamily,
+      paragraphWeight,
+      paragraphLH,
+      paragraphLS,
+      colorFormat,
+    ]
   )
-
-  const guard = (fn: () => void) => (e: any) => {
-    e.preventDefault()
-    e.stopPropagation()
-    fn()
-  }
 
   return (
     <div
       className='container'
       style={{ padding: '1rem', maxWidth: 1200, margin: '0 auto' }}
     >
-      {/* Theme name */}
-      <section className='card' style={{ marginBottom: 16 }}>
-        <label htmlFor='themeName'>
-          <strong>Theme Name</strong>
-        </label>
-        <input
-          id='themeName'
-          placeholder='e.g. Ocean Breeze'
-          value={themeName}
-          onChange={(e) => {
-            const v = e.target.value
-            setThemeName(v)
-            setTheme((prev: any) => ({ ...prev, name: v }))
-          }}
-          style={{
-            marginTop: 8,
-            padding: '10px 12px',
-            borderRadius: 10,
-            border: '1px solid #e5e7eb',
-            width: '100%',
-            maxWidth: 480,
-          }}
-        />
-      </section>
+      <ThemeHeader
+        name={themeName}
+        saving={saving}
+        hasCurrent={!!theme.id}
+        onChange={(v) => {
+          setThemeName(v)
+          setTheme((prev: any) => ({ ...prev, name: v }))
+        }}
+        onSaveNew={() => saveTheme(true)}
+        onSaveUpdate={() => saveTheme(false)}
+      />
 
-      {/* Controls + Preview */}
+      {/* Controls + Preview + Contrast */}
       <section
         className='row'
         style={{ display: 'flex', gap: 16, flexWrap: 'wrap' }}
@@ -393,331 +421,96 @@ export default function App() {
         <div className='card' style={{ flex: '1 1 320px' }}>
           <FontPicker
             label='Header Font'
-            value={headerFamily}
-            weights={headerWeights}
-            onChangeFont={(f) =>
-              setTypography({ headerFont: f, headerWeights: [] })
+            family={theme.typography?.headerFont || 'Inter'}
+            weight={
+              (theme.typography?.headerWeights?.[0] as number | undefined) ??
+              400
             }
-            onToggleWeight={(w) => {
-              const setW = new Set(headerWeights)
-              setW.has(w) ? setW.delete(w) : setW.add(w)
-              setTypography({
-                headerWeights: Array.from(setW).sort((a, b) => a - b),
-              })
+            italic={!!theme.typography?.headerItalic}
+            lineHeight={
+              (theme.typography?.headerLineHeight as number | undefined) ?? 1.25
+            }
+            letterSpacing={
+              (theme.typography?.headerLetterSpacing as number | undefined) ?? 0
+            }
+            onChange={(u) => {
+              const patch: any = {}
+              if (u.family !== undefined) patch.headerFont = u.family
+              if (u.weight !== undefined) patch.headerWeights = [u.weight]
+              if (u.italic !== undefined) patch.headerItalic = u.italic
+              if (u.lineHeight !== undefined)
+                patch.headerLineHeight = u.lineHeight
+              if (u.letterSpacing !== undefined)
+                patch.headerLetterSpacing = u.letterSpacing
+              setTheme((prev) => ({
+                ...prev,
+                typography: { ...(prev.typography || {}), ...patch },
+              }))
             }}
-            italic={headerItalic}
-            onToggleItalic={() =>
-              setTypography({ headerItalic: !headerItalic })
-            }
           />
         </div>
+
         <div className='card' style={{ flex: '1 1 320px' }}>
           <FontPicker
             label='Paragraph Font'
-            value={paragraphFamily}
-            weights={paragraphWeights}
-            onChangeFont={(f) =>
-              setTypography({ paragraphFont: f, paragraphWeights: [] })
+            family={theme.typography?.paragraphFont || 'Inter'}
+            weight={
+              (theme.typography?.paragraphWeights?.[0] as number | undefined) ??
+              400
             }
-            onToggleWeight={(w) => {
-              const setW = new Set(paragraphWeights)
-              setW.has(w) ? setW.delete(w) : setW.add(w)
-              setTypography({
-                paragraphWeights: Array.from(setW).sort((a, b) => a - b),
-              })
+            italic={!!theme.typography?.paragraphItalic}
+            lineHeight={
+              (theme.typography?.paragraphLineHeight as number | undefined) ??
+              1.6
+            }
+            letterSpacing={
+              (theme.typography?.paragraphLetterSpacing as
+                | number
+                | undefined) ?? 0
+            }
+            onChange={(u) => {
+              const patch: any = {}
+              if (u.family !== undefined) patch.paragraphFont = u.family
+              if (u.weight !== undefined) patch.paragraphWeights = [u.weight]
+              if (u.italic !== undefined) patch.paragraphItalic = u.italic
+              if (u.lineHeight !== undefined)
+                patch.paragraphLineHeight = u.lineHeight
+              if (u.letterSpacing !== undefined)
+                patch.paragraphLetterSpacing = u.letterSpacing
+              setTheme((prev) => ({
+                ...prev,
+                typography: { ...(prev.typography || {}), ...patch },
+              }))
             }}
-            italic={paragraphItalic}
-            onToggleItalic={() =>
-              setTypography({ paragraphItalic: !paragraphItalic })
-            }
           />
         </div>
+
         <div className='card' style={{ flex: '1 1 360px' }}>
-          <ColorControls />
+          <ColorControls format={colorFormat} onChangeFormat={setColorFormat} />
         </div>
-        <LivePreview />
+
+        <LivePreview apiBase={apiBase} />
+        <ContrastChecker />
       </section>
 
-      {/* Brand Logo */}
-      <section className='card' style={{ marginTop: 16 }}>
-        <strong>Brand Logo</strong>
-        <div
-          className='row'
-          style={{
-            display: 'flex',
-            gap: 12,
-            alignItems: 'center',
-            flexWrap: 'wrap',
-          }}
-        >
-          <label
-            className='chip'
-            style={{ display: 'flex', gap: 8, alignItems: 'center' }}
-          >
-            <input
-              type='radio'
-              name='logoChoice'
-              onChange={() =>
-                setTheme((p: any) => ({ ...p, logoUrl: PRIMARY_LOGO }))
-              }
-              checked={theme.logoUrl === PRIMARY_LOGO}
-            />
-            <img
-              src={PRIMARY_LOGO}
-              alt='Primary'
-              style={{ width: 24, height: 24, borderRadius: 6 }}
-            />
-            Primary
-          </label>
-          <label
-            className='chip'
-            style={{ display: 'flex', gap: 8, alignItems: 'center' }}
-          >
-            <input
-              type='radio'
-              name='logoChoice'
-              onChange={() =>
-                setTheme((p: any) => ({ ...p, logoUrl: MONO_WHITE }))
-              }
-              checked={theme.logoUrl === MONO_WHITE}
-            />
-            <img
-              src={MONO_WHITE}
-              alt='Mono white'
-              style={{ width: 24, height: 24, borderRadius: 6 }}
-            />
-            Mono – White
-          </label>
-          <label
-            className='chip'
-            style={{ display: 'flex', gap: 8, alignItems: 'center' }}
-          >
-            <input
-              type='radio'
-              name='logoChoice'
-              onChange={() =>
-                setTheme((p: any) => ({ ...p, logoUrl: MONO_BLACK }))
-              }
-              checked={theme.logoUrl === MONO_BLACK}
-            />
-            <img
-              src={MONO_BLACK}
-              alt='Mono black'
-              style={{ width: 24, height: 24, borderRadius: 6 }}
-            />
-            Mono – Black
-          </label>
-          <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
-            <input
-              type='file'
-              accept='image/png,image/svg+xml,image/jpeg,image/webp'
-              onChange={(e) => {
-                const f = e.target.files?.[0]
-                if (f) onUploadLogo(f)
-              }}
-            />
-            {theme.logoUrl && (
-              <code style={{ fontSize: 12 }}>{theme.logoUrl}</code>
-            )}
-          </div>
-        </div>
-        <small>
-          Built-in logos live under <code>frontend/public/brand/</code> or
-          upload a custom one.
-        </small>
-      </section>
+      <BrandLogo
+        value={theme.logoUrl}
+        apiBase={apiBase}
+        onChange={(url) => setTheme((p: any) => ({ ...p, logoUrl: url }))}
+      />
 
-      {/* CSS Variables + Save */}
-      <section className='card' style={{ marginTop: 16 }}>
-        <strong>CSS Variables (:root)</strong>
-        <pre
-          style={{
-            whiteSpace: 'pre-wrap',
-            background: '#0b0f140a',
-            padding: 12,
-            borderRadius: 8,
-            overflow: 'auto',
-          }}
-        >
-          {themeToCssVars({
-            ...theme,
-            typography: {
-              ...(theme.typography || {}),
-              headerFont: headerFamily,
-              headerWeights,
-              paragraphFont: paragraphFamily,
-              paragraphWeights,
-            },
-          })}
-        </pre>
-        <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
-          <button
-            type='button'
-            className='btn'
-            onClick={(e) => {
-              e.preventDefault()
-              e.stopPropagation()
-              handleCopy(
-                themeToCssVars({
-                  ...theme,
-                  typography: {
-                    ...(theme.typography || {}),
-                    headerFont: headerFamily,
-                    headerWeights,
-                    paragraphFont: paragraphFamily,
-                    paragraphWeights,
-                  },
-                }),
-                '__vars__'
-              )
-            }}
-          >
-            {copied === '__vars__' ? 'Copied!' : 'Copy'}
-          </button>
-          <button
-            type='button'
-            className='btn'
-            onClick={(e) => {
-              e.preventDefault()
-              e.stopPropagation()
-              saveTheme(true)
-            }}
-            disabled={saving}
-            title='Create a brand new theme'
-          >
-            {saving ? 'Saving…' : 'Save New Theme'}
-          </button>
-          {theme.id && (
-            <button
-              type='button'
-              className='btn'
-              onClick={(e) => {
-                e.preventDefault()
-                e.stopPropagation()
-                saveTheme(false)
-              }}
-              disabled={saving}
-              title='Update the currently loaded theme'
-            >
-              {saving ? 'Saving…' : 'Update Current'}
-            </button>
-          )}
-        </div>
-      </section>
+      <CssVarsPanel cssVars={cssVars} />
 
-      {/* Saved Themes */}
-      <section className='card' style={{ marginTop: 16 }}>
-        <strong>
-          Saved Themes <small style={{ opacity: 0.6 }}>({themes.length})</small>
-        </strong>
+      <SavedThemes
+        apiBase={apiBase}
+        themes={themes}
+        loading={loading}
+        err={err}
+        onLoad={loadTheme}
+        onDuplicate={duplicateTheme}
+        onDelete={deleteTheme}
+      />
 
-        {loading ? (
-          <div style={{ marginTop: 8 }}>Loading…</div>
-        ) : err ? (
-          <div className='error' style={{ marginTop: 8 }}>
-            Failed to load themes: {err}
-          </div>
-        ) : themes.length === 0 ? (
-          <div style={{ marginTop: 8 }}>No themes yet</div>
-        ) : (
-          <div
-            style={{
-              marginTop: 8,
-              border: '1px solid #e5e7eb',
-              borderRadius: 12,
-              overflow: 'auto',
-              maxHeight: 360,
-              background: '#fff',
-            }}
-          >
-            <ul style={{ listStyle: 'none', padding: 0, margin: 0 }}>
-              {themes.map((t) => {
-                const name = displayNameOf(t)
-                const cssUrl = `${apiBase}/themes/${t.id}.css`
-                const previewUrl = `${apiBase}/themes/${t.id}/preview`
-                return (
-                  <li
-                    key={t.id}
-                    style={{
-                      display: 'flex',
-                      alignItems: 'center',
-                      gap: 8,
-                      padding: '10px 12px',
-                      borderBottom: '1px solid #eef2f7',
-                    }}
-                  >
-                    <span
-                      style={{
-                        flex: 1,
-                        minWidth: 0,
-                        overflow: 'hidden',
-                        textOverflow: 'ellipsis',
-                      }}
-                    >
-                      {name}
-                    </span>
-
-                    <button
-                      type='button'
-                      className='btn'
-                      onClick={(e) => {
-                        e.preventDefault()
-                        e.stopPropagation()
-                        loadTheme(t.id)
-                      }}
-                    >
-                      Load
-                    </button>
-
-                    {/* Duplicate: load then clear id so Save New creates a fresh copy */}
-                    <button
-                      type='button'
-                      className='btn'
-                      onClick={(e) => {
-                        e.preventDefault()
-                        e.stopPropagation()
-                        loadTheme(t.id).then(() => {
-                          setTheme((p: any) => ({
-                            ...p,
-                            id: undefined,
-                            name: `${name} (copy)`,
-                          }))
-                        })
-                      }}
-                      title='Load as new (clears id so Save New creates a fresh copy)'
-                    >
-                      Duplicate
-                    </button>
-
-                    <button
-                      type='button'
-                      className='btn'
-                      onClick={(e) => {
-                        e.preventDefault()
-                        e.stopPropagation()
-                        handleCopy(cssUrl, t.id)
-                      }}
-                    >
-                      {copied === t.id ? 'Copied!' : 'Copy CSS URL'}
-                    </button>
-
-                    <a
-                      className='btn'
-                      href={previewUrl}
-                      target='_blank'
-                      rel='noreferrer'
-                    >
-                      Open Preview
-                    </a>
-                  </li>
-                )
-              })}
-            </ul>
-          </div>
-        )}
-      </section>
-
-      {/* Palette generator */}
       <section
         className='row'
         style={{ display: 'flex', gap: 16, flexWrap: 'wrap' }}

@@ -1,82 +1,257 @@
-import { useMemo, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import { useTheme } from '../store/theme'
 
-function hexToRgb(hex: string){ const h=hex.replace('#',''); const b=parseInt(h.length===3?h.split('').map(c=>c+c).join(''):h,16); return {r:(b>>16)&255,g:(b>>8)&255,b:b&255} }
-function s2l(c:number){ const s=c/255; return s<=0.03928 ? s/12.92 : Math.pow((s+0.055)/1.055,2.4) }
-function lum(hex:string){ const {r,g,b}=hexToRgb(hex); return 0.2126*s2l(r)+0.7152*s2l(g)+0.0722*s2l(b) }
-function clamp(n:number,min:number,max:number){ return Math.max(min, Math.min(max,n)); }
-function toHex(n:number){ const s = clamp(Math.round(n),0,255).toString(16).padStart(2,'0'); return s; }
-function mix(c1:string, c2:string, w:number){ const a=hexToRgb(c1), b=hexToRgb(c2); const r=a.r*(1-w)+b.r*w, g=a.g*(1-w)+b.g*w, b2=a.b*(1-w)+b.b*w; return '#' + toHex(r)+toHex(g)+toHex(b2); }
+function hexToRgb(hex: string): { r: number; g: number; b: number } | null {
+  if (!hex || typeof hex !== 'string') return null
+  const m = hex.trim().match(/^#?([a-f\d]{3}|[a-f\d]{6})$/i)
+  if (!m) return null
+  let h = m[1]
+  if (h.length === 3)
+    h = h
+      .split('')
+      .map((c) => c + c)
+      .join('')
+  const num = parseInt(h, 16)
+  return { r: (num >> 16) & 255, g: (num >> 8) & 255, b: num & 255 }
+}
 
-export default function LivePreview(){
-  const { theme } = useTheme()
-  const [mode, setMode] = useState<'light'|'dark'>('light')
+function textOn(bg: string, fallback = '#ffffff'): string {
+  const rgb = hexToRgb(bg)
+  if (!rgb) return fallback
+  const yiq = (rgb.r * 299 + rgb.g * 587 + rgb.b * 114) / 1000
+  return yiq >= 186 ? '#111111' : '#ffffff'
+}
 
-  const vars = useMemo(() => {
-    const C = theme.colors || ({} as any)
-    let surface = C.surface || C.neutral_light || '#ffffff'
-    let text = C.text || '#111827'
-    if (mode === 'dark'){
-      surface = C.neutral_dark || '#0b0f14'
-      const Lt = lum(text); if (Lt < 0.6) text = mix(text, '#ffffff', 0.8)
-    }
-    return {
-      ['--color-surface' as any]: surface,
-      ['--color-text' as any]: text,
-      ['--color-primary' as any]: C.primary || '#2563eb',
-      ['--color-secondary' as any]: C.secondary || '#14b8a6',
-      ['--color-tertiary' as any]: C.tertiary || '#8b5cf6',
-      ['--color-warning' as any]: C.warning || '#f59e0b',
-      ['--color-danger' as any]: C.danger || '#ef4444',
-      ['--color-caution' as any]: C.caution || '#fbbf24',
-      ['--color-success' as any]: C.success || '#16a34a',
-      ['--font-header' as any]: `'${theme.typography.headerFont}', system-ui, -apple-system, Segoe UI, Roboto, sans-serif`,
-      ['--font-paragraph' as any]: `'${theme.typography.paragraphFont}', system-ui, -apple-system, Segoe UI, Roboto, sans-serif`,
-      ['--font-base' as any]: `${theme.typography.base}px`,
-      ['--font-ratio' as any]: `${theme.typography.ratio}`,
-      ['--space-base' as any]: `${theme.spacing.base}px`,
-    } as React.CSSProperties
-  }, [theme, mode])
+function resolveLogoForUI(
+  raw: string | null | undefined,
+  apiBase: string
+): string {
+  const uiOrigin =
+    typeof window !== 'undefined'
+      ? window.location.origin
+      : 'http://localhost:5173'
+  const val = (raw || '').trim()
+  if (!val) return ''
+  const low = val.toLowerCase()
+  if (
+    low.startsWith('http://') ||
+    low.startsWith('https://') ||
+    low.startsWith('data:')
+  )
+    return val
+  if (val.startsWith('/uploads/')) return `${apiBase}${val}`
+  if (val.startsWith('uploads/')) return `${apiBase}/${val}`
+  if (val.startsWith('/brand/')) return `${uiOrigin}${val}`
+  if (val.startsWith('brand/')) return `${uiOrigin}/${val}`
+  if (val.startsWith('/')) return `${uiOrigin}${val}`
+  return val
+}
+
+type Props = { apiBase: string }
+
+export default function LivePreview({ apiBase }: Props) {
+  const { theme } = useTheme() as { theme: any }
+
+  const colors = theme?.colors || {}
+  const logoUrlResolved = resolveLogoForUI(theme?.logoUrl, apiBase)
+
+  const headerFont = theme?.typography?.headerFont || 'Inter'
+  const headerWeight =
+    (theme?.typography?.headerWeights?.[0] as number | undefined) ?? 400
+  const headerItalic = !!theme?.typography?.headerItalic
+  const headerLH =
+    (theme?.typography?.headerLineHeight as number | undefined) ?? 1.25
+  const headerLS =
+    (theme?.typography?.headerLetterSpacing as number | undefined) ?? 0
+
+  const paragraphFont = theme?.typography?.paragraphFont || 'Inter'
+  const paragraphWeight =
+    (theme?.typography?.paragraphWeights?.[0] as number | undefined) ?? 400
+  const paragraphItalic = !!theme?.typography?.paragraphItalic
+  const paragraphLH =
+    (theme?.typography?.paragraphLineHeight as number | undefined) ?? 1.6
+  const paragraphLS =
+    (theme?.typography?.paragraphLetterSpacing as number | undefined) ?? 0
+
+  const bg = colors.neutral_light || '#ffffff'
+  const fg = colors.neutral_dark || '#111111'
+
+  const [imgSrc, setImgSrc] = useState<string>(logoUrlResolved)
+  useEffect(() => {
+    setImgSrc(logoUrlResolved)
+  }, [logoUrlResolved])
+
+  const chips = useMemo(
+    () =>
+      (
+        [
+          'primary',
+          'secondary',
+          'tertiary',
+          'danger',
+          'warning',
+          'caution',
+          'success',
+        ] as const
+      ).map((k) => {
+        const bgc = colors[k] || '#9ca3af'
+        return { key: k, bg: bgc, fg: textOn(bgc) }
+      }),
+    [colors]
+  )
+
+  const fallback = () => {
+    return (
+      <div
+        style={{
+          width: 72,
+          height: 72,
+          borderRadius: 12,
+          border: '1px dashed #cbd5e1',
+          display: 'grid',
+          placeItems: 'center',
+          fontSize: 12,
+          color: '#64748b',
+        }}
+      >
+        no logo
+      </div>
+    )
+  }
 
   return (
-    <div className="card" style={{flex:'1 1 460px'}}>
-      <div className="vk-preview" style={vars as any}>
-        <div className="vk-toolbar">
-          <span>Mode:</span>
-          <button className={`vk-chip ${mode==='light'?'active':''}`} onClick={()=>setMode('light')}>Light</button>
-          <button className={`vk-chip ${mode==='dark'?'active':''}`} onClick={()=>setMode('dark')}>Dark</button>
+    <section className='card' style={{ flex: '1 1 420px' }}>
+      <strong>Live Preview</strong>
+      <div
+        style={{
+          marginTop: 8,
+          padding: 16,
+          borderRadius: 12,
+          background: bg,
+          color: fg,
+          border: '1px solid #e5e7eb',
+        }}
+      >
+        <div
+          style={{
+            display: 'flex',
+            alignItems: 'center',
+            gap: 12,
+            marginBottom: 12,
+          }}
+        >
+          {imgSrc && imgSrc !== '' ? (
+            <img
+              src={imgSrc}
+              alt='logo'
+              style={{ height: 28 }}
+              onError={() => {
+                console.log('Image failed to load:', imgSrc)
+                // Image failed, show the fallback component instead
+                setImgSrc('')
+              }}
+            />
+          ) : (
+            fallback()
+          )}
+          <span style={{ opacity: 0.7, fontSize: 12 }}>
+            {theme?.name || 'Untitled Theme'}
+          </span>
         </div>
 
-        <header className="vk-header">
-          {theme.logoUrl ? <img src={theme.logoUrl} alt="Logo" /> : null}
-          <h2 style={{margin:0}}>{theme.name || 'Untitled Theme'}</h2>
-        </header>
+        <h2
+          style={{
+            margin: '8px 0',
+            fontFamily: `'${headerFont}', system-ui, -apple-system, Segoe UI, Roboto, sans-serif`,
+            fontWeight: headerWeight,
+            fontStyle: headerItalic ? 'italic' : 'normal',
+            lineHeight: headerLH,
+            letterSpacing: `${headerLS}em`,
+          }}
+        >
+          The Quick Brown Fox
+        </h2>
 
-        <section className="vk-typography">
-          <div className="vk-sample-header">The quick brown fox jumps over the lazy dog</div>
-          <div className="vk-sample-paragraph">Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.</div>
-        </section>
+        <p
+          style={{
+            margin: '6px 0 12px',
+            fontFamily: `'${paragraphFont}', system-ui, -apple-system, Segoe UI, Roboto, sans-serif`,
+            fontWeight: paragraphWeight,
+            fontStyle: paragraphItalic ? 'italic' : 'normal',
+            lineHeight: paragraphLH,
+            letterSpacing: `${paragraphLS}em`,
+          }}
+        >
+          Lorem ipsum dolor sit amet, consectetur adipiscing elit. Pellentesque
+          habitant morbi tristique senectus et netus et malesuada fames ac
+          turpis egestas.
+        </p>
 
-        <div className="row">
-          <button className="btn primary">Primary</button>
-          <button className="btn secondary">Secondary</button>
-          <button className="btn danger">Danger</button>
+        <div
+          style={{
+            display: 'flex',
+            gap: 8,
+            flexWrap: 'wrap',
+            marginBottom: 12,
+          }}
+        >
+          {chips.map((c) => (
+            <span
+              key={c.key}
+              style={{
+                padding: '6px 10px',
+                borderRadius: 999,
+                fontSize: 12,
+                background: c.bg,
+                color: c.fg,
+                border: '1px solid rgba(0,0,0,.06)',
+                textTransform: 'capitalize',
+              }}
+              title={c.key}
+            >
+              {c.key}
+            </span>
+          ))}
         </div>
 
-        <div className="row">
-          <div className="card" style={{maxWidth:360}}>
-            <h3>Card Title</h3>
-            <p>Body text uses the paragraph font and color tokens.</p>
-            <button className="btn">Action</button>
-          </div>
-          <div className="vk-alert warning">Warning alert using tokens.</div>
+        <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
+          <button
+            style={{
+              padding: '8px 12px',
+              borderRadius: 8,
+              border: 'none',
+              background: colors.primary || '#2563eb',
+              color: textOn(colors.primary || '#2563eb'),
+              cursor: 'pointer',
+            }}
+          >
+            Primary Button
+          </button>
+          <button
+            style={{
+              padding: '8px 12px',
+              borderRadius: 8,
+              border: '1px solid #e5e7eb',
+              background: 'transparent',
+              color: fg,
+              cursor: 'pointer',
+            }}
+          >
+            Secondary Button
+          </button>
+          <a
+            href='#'
+            onClick={(e) => e.preventDefault()}
+            style={{
+              alignSelf: 'center',
+              color: colors.secondary || '#6b7280',
+              textDecoration: 'underline',
+            }}
+          >
+            Link example
+          </a>
         </div>
-
-        <label className="vk-field">
-          <span>Label</span>
-          <input type="text" placeholder="Type here" />
-        </label>
       </div>
-    </div>
+    </section>
   )
 }

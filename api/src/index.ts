@@ -1,55 +1,89 @@
-// api/src/index.ts
-
 export interface Env {
   DB: D1Database
-  UPLOADS: R2Bucket
+}
+
+const ALLOWED_ORIGINS = new Set([
+  'http://localhost:5173',
+  'http://127.0.0.1:5173',
+  'http://localhost:4173',
+  'http://127.0.0.1:4173',
+  // add deploy domains, e.g. 'https://vibekit.yourdomain.com'
+])
+
+function corsHeaders(origin: string | null) {
+  const allow =
+    origin && (ALLOWED_ORIGINS.has(origin) || origin.endsWith('.vercel.app'))
+      ? origin
+      : '*'
+  return {
+    'Access-Control-Allow-Origin': allow,
+    'Access-Control-Allow-Methods': 'GET,POST,DELETE,OPTIONS',
+    'Access-Control-Allow-Headers':
+      'Content-Type, Authorization, X-Requested-With',
+    'Access-Control-Max-Age': '86400',
+  }
+}
+
+function json(
+  data: any,
+  init: ResponseInit = {},
+  origin: string | null = null
+) {
+  return new Response(JSON.stringify(data), {
+    ...init,
+    headers: {
+      'Content-Type': 'application/json; charset=utf-8',
+      ...(init.headers || {}),
+      ...corsHeaders(origin),
+    },
+  })
+}
+
+function text(
+  body: string,
+  init: ResponseInit = {},
+  origin: string | null = null
+) {
+  return new Response(body, {
+    ...init,
+    headers: {
+      'Content-Type': 'text/plain; charset=utf-8',
+      ...(init.headers || {}),
+      ...corsHeaders(origin),
+    },
+  })
+}
+
+function html(
+  body: string,
+  init: ResponseInit = {},
+  origin: string | null = null
+) {
+  return new Response(body, {
+    ...init,
+    headers: {
+      'Content-Type': 'text/html; charset=utf-8',
+      ...(init.headers || {}),
+      ...corsHeaders(origin),
+    },
+  })
 }
 
 type ThemeRow = {
   id: string
   name: string | null
-  colors: string | null
-  typography: string | null
-  spacing: string | null
-  logo_url: string | null
+  logo_url?: string | null
+  colors?: string | null
+  typography?: string | null
+  spacing?: string | null
   created_at?: number | null
 }
 
-type Theme = {
-  id: string
-  name: string
-  colors: Record<string, any>
-  typography: Record<string, any>
-  spacing: Record<string, any>
-  logoUrl: string | null
-  created_at?: number | null
-}
-
-function json(data: unknown, status = 200, extra?: HeadersInit) {
-  return new Response(JSON.stringify(data), {
-    status,
-    headers: {
-      'content-type': 'application/json; charset=utf-8',
-      ...extra,
-    },
-  })
-}
-
-function corsHeaders(req: Request): HeadersInit {
-  const origin = req.headers.get('Origin') || '*'
-  return {
-    'Access-Control-Allow-Origin': origin,
-    Vary: 'Origin',
-    'Access-Control-Allow-Methods': 'GET,POST,OPTIONS',
-    'Access-Control-Allow-Headers': 'Content-Type, Authorization',
-  }
-}
-
-function parseThemeRow(row: ThemeRow | null): Theme | null {
+function parseTheme(row: ThemeRow | null) {
   if (!row) return null
-  let colors = {} as any
-  let typography = {} as any
-  let spacing = {} as any
+  let colors = {}
+  let typography = {}
+  let spacing = {}
   try {
     colors = row.colors ? JSON.parse(row.colors) : {}
   } catch {}
@@ -59,35 +93,27 @@ function parseThemeRow(row: ThemeRow | null): Theme | null {
   try {
     spacing = row.spacing ? JSON.parse(row.spacing) : {}
   } catch {}
-
   return {
     id: row.id,
-    name: row.name ?? 'Untitled Theme',
+    name: row.name || null,
+    logoUrl: row.logo_url || null,
     colors,
     typography,
     spacing,
-    logoUrl: row.logo_url,
     created_at: row.created_at ?? null,
   }
 }
 
-function buildCssVars(theme: Theme): string {
-  const c = theme.colors || {}
-  const t = theme.typography || {}
-  const s = theme.spacing || {}
+function themeToCssVars(theme: any) {
+  const c = theme?.colors || {}
+  const t = theme?.typography || {}
   const lines: string[] = []
+  const push = (k: string, v?: string | number) =>
+    v != null && lines.push(`${k}: ${v};`)
 
-  function pushVar(name: string, value?: string | number | null) {
-    if (value === undefined || value === null || value === '') return
-    lines.push(`${name}: ${value};`)
-  }
-
-  // Colors (accept both your token names + generic surface/text)
-  const colorKeys = [
+  const keys = [
     'neutral_light',
     'neutral_dark',
-    'surface',
-    'text',
     'primary',
     'secondary',
     'tertiary',
@@ -95,409 +121,279 @@ function buildCssVars(theme: Theme): string {
     'danger',
     'caution',
     'success',
-  ]
-  for (const k of colorKeys) {
-    const v = c[k]
-    if (v) pushVar(`--color-${k.replace('_', '-')}`, v)
-  }
+  ] as const
 
-  // Typography
-  if (typeof t.base === 'number') pushVar('--font-base', `${t.base}px`)
-  if (typeof t.ratio === 'number') pushVar('--font-ratio', String(t.ratio))
+  keys.forEach((k) => {
+    const val = c[k]
+    if (val) push(`--color-${k.replace('_', '-')}`, val)
+  })
+
+  if (typeof t.base === 'number') push('--font-base', `${t.base}px`)
+  if (typeof t.ratio === 'number') push('--font-ratio', String(t.ratio))
   if (t.headerFont)
-    pushVar(
+    push(
       '--font-header',
       `'${t.headerFont}', system-ui, -apple-system, Segoe UI, Roboto, sans-serif`
     )
   if (t.paragraphFont)
-    pushVar(
+    push(
       '--font-paragraph',
       `'${t.paragraphFont}', system-ui, -apple-system, Segoe UI, Roboto, sans-serif`
     )
+  if (typeof t.headerLineHeight === 'number')
+    push('--line-height-header', String(t.headerLineHeight))
+  if (typeof t.paragraphLineHeight === 'number')
+    push('--line-height-paragraph', String(t.paragraphLineHeight))
+  if (typeof t.headerLetterSpacing === 'number')
+    push('--letter-spacing-header', `${t.headerLetterSpacing}em`)
+  if (typeof t.paragraphLetterSpacing === 'number')
+    push('--letter-spacing-paragraph', `${t.paragraphLetterSpacing}em`)
 
-  // Spacing
-  if (typeof s.base === 'number') pushVar('--space-base', `${s.base}px`)
-
-  return `:root {\n  ${lines.join('\n  ')}\n}\n`
+  return `:root{\n  ${lines.join('\n  ')}\n}`
 }
 
-function buildCss(theme: Theme): string {
-  return `/* VibeKit theme: ${theme.name} (${theme.id}) */
-${buildCssVars(theme)}
-`
+async function getTheme(env: Env, id: string) {
+  const row = await env.DB.prepare('SELECT * FROM themes WHERE id = ?')
+    .bind(id)
+    .first<ThemeRow>()
+  return parseTheme(row)
 }
 
-function escapeHtml(s: string) {
-  return s.replace(
-    /[&<>"]/g,
-    (c) =>
-      ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c] as string)
-  )
-}
-
-function buildPreviewHTML(theme: Theme): string {
-  const vars = buildCssVars(theme)
-  const headerFont = theme.typography?.headerFont || 'Inter'
-  const paragraphFont = theme.typography?.paragraphFont || 'Inter'
-  const name = escapeHtml(theme.name || 'Untitled Theme')
-  const logo = theme.logoUrl
-    ? `<img src="${escapeHtml(theme.logoUrl)}" alt="Logo" />`
-    : ''
-
-  // No nested backticks in the inline script; only concatenations.
-  const headFonts = (() => {
-    const hW =
-      Array.isArray(theme.typography?.headerWeights) &&
-      theme.typography!.headerWeights!.length
-        ? theme
-            .typography!.headerWeights!.slice()
-            .sort((a: number, b: number) => a - b)
-            .join(';')
-        : '400;600;700'
-    const pW =
-      Array.isArray(theme.typography?.paragraphWeights) &&
-      theme.typography!.paragraphWeights!.length
-        ? theme
-            .typography!.paragraphWeights!.slice()
-            .sort((a: number, b: number) => a - b)
-            .join(';')
-        : '300;400;500'
-    const h = headerFont
-      ? 'family=' + encodeURIComponent(headerFont) + ':wght@' + hW
-      : ''
-    const p =
-      paragraphFont && paragraphFont !== headerFont
-        ? '&family=' + encodeURIComponent(paragraphFont) + ':wght@' + pW
-        : ''
-    return h || p
-      ? `<link rel="stylesheet" href="https://fonts.googleapis.com/css2?${h}${p}&display=swap">`
-      : ''
-  })()
-
-  return `<!doctype html>
-<html lang="en">
-<head>
-<meta charset="utf-8"/>
-<meta name="viewport" content="width=device-width, initial-scale=1"/>
-<title>VibeKit – ${name}</title>
-${headFonts}
-<style>
-${vars}
-*{box-sizing:border-box}
-body{margin:0;background:var(--color-surface,#fff);color:var(--color-text,#111827);font-family:var(--font-paragraph,system-ui,-apple-system,Segoe UI,Roboto,sans-serif)}
-h1,h2,h3{font-family:var(--font-header,var(--font-paragraph,system-ui))}
-.container{max-width:960px;margin:2rem auto;padding:1rem}
-.row{display:flex;gap:12px;flex-wrap:wrap;margin:12px 0}
-.card{border:1px solid #e5e7eb;border-radius:12px;padding:16px;background:rgba(255,255,255,.06)}
-.btn{padding:8px 12px;border-radius:10px;border:1px solid #e5e7eb;background:#f9fafb;cursor:pointer}
-.btn.primary{background:var(--color-primary,#2563eb);color:#fff;border-color:transparent}
-.btn.secondary{background:var(--color-secondary,#14b8a6);color:#fff;border-color:transparent}
-.alert.warning{background:var(--color-warning,#f59e0b);color:#111;padding:8px 12px;border-radius:10px}
-.field{display:grid;gap:.5rem}
-.field input{padding:10px 12px;border-radius:10px;border:1px solid #e5e7eb}
-header img{width:28px;height:28px;border-radius:6px}
-.sample-header{font-weight:600;font-size:1.5rem}
-.sample-paragraph{line-height:1.6}
-</style>
-</head>
-<body>
-  <main class="container">
-    <header style="display:flex;align-items:center;gap:12px;margin-bottom:12px">
-      ${logo}
-      <h1>${name}</h1>
-    </header>
-
-    <section class="row" style="flex-direction:column">
-      <div class="sample-header" style="font-family:'${escapeHtml(
-        headerFont
-      )}',system-ui,-apple-system,Segoe UI,Roboto,sans-serif">
-        The quick brown fox jumps over the lazy dog
-      </div>
-      <div class="sample-paragraph" style="font-family:'${escapeHtml(
-        paragraphFont
-      )}',system-ui,-apple-system,Segoe UI,Roboto,sans-serif">
-        Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.
-      </div>
-    </section>
-
-    <div class="row">
-      <button class="btn primary">Primary</button>
-      <button class="btn secondary">Secondary</button>
-      <div class="alert warning">Warning alert using tokens</div>
-    </div>
-
-    <div class="card">
-      <h3>Card Title</h3>
-      <p>Body text uses the paragraph font and color tokens.</p>
-      <button class="btn">Action</button>
-    </div>
-  </main>
-</body>
-</html>`
-}
-
-function buildOgSvg(theme: Theme): string {
-  const name = escapeHtml(theme.name || 'VibeKit Theme')
-  const p = theme.colors?.primary || '#2563eb'
-  const s = theme.colors?.secondary || '#14b8a6'
-  const t = theme.colors?.tertiary || '#8b5cf6'
-  return `<?xml version="1.0" encoding="UTF-8"?>
-<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="630" viewBox="0 0 1200 630">
-  <defs>
-    <linearGradient id="g" x1="0" y1="0" x2="1" y2="1">
-      <stop offset="0%" stop-color="${p}"/>
-      <stop offset="50%" stop-color="${s}"/>
-      <stop offset="100%" stop-color="${t}"/>
-    </linearGradient>
-  </defs>
-  <rect width="1200" height="630" fill="url(#g)"/>
-  <rect x="40" y="40" width="1120" height="550" rx="28" fill="rgba(255,255,255,0.92)"/>
-  <text x="80" y="180" font-family="system-ui,-apple-system,Segoe UI,Roboto,sans-serif" font-weight="700" font-size="72" fill="#111827">VibeKit</text>
-  <text x="80" y="260" font-family="system-ui,-apple-system,Segoe UI,Roboto,sans-serif" font-size="48" fill="#111827">${name}</text>
-</svg>`
+async function getFileData(f: File | null) {
+  if (!f) return null
+  const buf = await f.arrayBuffer()
+  return {
+    name: f.name || 'upload',
+    mime: f.type || 'application/octet-stream',
+    data: new Uint8Array(buf),
+  }
 }
 
 export default {
   async fetch(request: Request, env: Env): Promise<Response> {
-    // CORS preflight
-    if (request.method === 'OPTIONS') {
-      return new Response(null, { status: 204, headers: corsHeaders(request) })
-    }
-
     const url = new URL(request.url)
-    let path = url.pathname
-    const method = request.method.toUpperCase()
+    const origin = request.headers.get('Origin')
 
-    // Accept both /api/* and bare
-    if (path.startsWith('/api/')) path = path.slice(4)
-
-    // Health
-    if (path === '/health' && method === 'GET') {
-      return json({ status: 'ok' }, 200, corsHeaders(request))
+    if (request.method === 'OPTIONS') {
+      return new Response(null, { status: 204, headers: corsHeaders(origin) })
     }
 
-    // Serve R2 assets (e.g., uploaded logos) at /assets/*
-    if (path.startsWith('/assets/') && method === 'GET') {
-      const key = path.replace(/^\/assets\//, '')
-      const obj = await env.UPLOADS.get(key)
-      if (!obj) return json({ error: 'Not found' }, 404, corsHeaders(request))
-      const headers: HeadersInit = {
-        'Cache-Control': 'public, max-age=3600, s-maxage=86400',
-        ...corsHeaders(request),
+    // ---- THEMES ----
+
+    // GET /themes
+    if (request.method === 'GET' && url.pathname === '/themes') {
+      const rows = await env.DB.prepare(
+        'SELECT id, name, created_at FROM themes ORDER BY created_at DESC'
+      ).all<ThemeRow>()
+      const list = (rows.results || []).map((r) => ({
+        id: r.id,
+        name: r.name || 'Untitled Theme',
+        created_at: r.created_at ?? null,
+      }))
+      return json(list, {}, origin)
+    }
+
+    // POST /themes (create/update) or fallback delete
+    if (request.method === 'POST' && url.pathname === '/themes') {
+      const body = await request.json().catch(() => ({}))
+      if (body && body._action === 'delete' && body.id) {
+        await env.DB.prepare('DELETE FROM themes WHERE id = ?')
+          .bind(body.id)
+          .run()
+        return json({ ok: true }, {}, origin)
       }
-      // Try to guess content type by extension
-      const ct = key.endsWith('.png')
-        ? 'image/png'
-        : key.endsWith('.jpg') || key.endsWith('.jpeg')
-        ? 'image/jpeg'
-        : key.endsWith('.webp')
-        ? 'image/webp'
-        : key.endsWith('.svg')
-        ? 'image/svg+xml'
-        : 'application/octet-stream'
-      return new Response(obj.body, {
-        headers: { 'content-type': ct, ...headers },
-      })
-    }
 
-    // Upload logo -> store in R2, return {url}
-    if (path === '/uploads/logo' && method === 'POST') {
-      const ct = request.headers.get('content-type') || ''
-      if (!ct.includes('multipart/form-data')) {
-        return json(
-          { error: 'multipart/form-data required' },
-          400,
-          corsHeaders(request)
-        )
-      }
-      const form = await request.formData()
-      const file = form.get('file')
-      if (!(file instanceof File)) {
-        return json({ error: 'file field missing' }, 400, corsHeaders(request))
-      }
-      const ext = (file.name.split('.').pop() || 'bin').toLowerCase()
-      const id =
-        globalThis.crypto?.randomUUID?.() ??
-        `${Date.now()}-${Math.random().toString(36).slice(2)}`
-      const key = `logos/${id}.${ext}`
-      await env.UPLOADS.put(key, await file.arrayBuffer(), {
-        httpMetadata: { contentType: file.type || 'application/octet-stream' },
-      })
-      // Serve via our /assets route
-      const urlPath = `/assets/${key}`
-      return json({ url: urlPath }, 200, corsHeaders(request))
-    }
+      const id = body.id || crypto.randomUUID()
+      const name = (body.name || 'Untitled Theme').toString()
+      const logo_url = body.logoUrl || null
+      const colors = JSON.stringify(body.colors || {})
+      const typography = JSON.stringify(body.typography || {})
+      const spacing = JSON.stringify(body.spacing || {})
+      const created_at = Math.floor(Date.now() / 1000)
 
-    // List themes (minimal fields for the Saved Themes list)
-    if (path === '/themes' && method === 'GET') {
-      const res = await env.DB.prepare(
-        `SELECT id, name, created_at FROM themes ORDER BY COALESCE(created_at, strftime('%s','now')) DESC`
-      ).all()
-      const results = (res.results || []) as ThemeRow[]
-      return json(results, 200, corsHeaders(request))
-    }
-
-    // Create/Update theme (UPSERT)
-    if (path === '/themes' && method === 'POST') {
-      const data = await request.json().catch(() => ({} as any))
-
-      // Accept both top-level and nested fields
-      const rawName = (data?.name ?? data?.theme?.name ?? '').toString().trim()
-      const name = rawName || 'Untitled Theme'
-
-      const id =
-        typeof data?.id === 'string' && data.id.trim()
-          ? data.id.trim()
-          : globalThis.crypto?.randomUUID?.() ??
-            `${Date.now()}-${Math.random().toString(36).slice(2)}`
-
-      const colors = JSON.stringify(data?.colors ?? data?.theme?.colors ?? {})
-      const typography = JSON.stringify(
-        data?.typography ?? data?.theme?.typography ?? {}
-      )
-      const spacing = JSON.stringify(
-        data?.spacing ?? data?.theme?.spacing ?? {}
-      )
-      const logo_url = (data?.logoUrl ?? data?.logo_url ?? null) as
-        | string
-        | null
-
-      // Ensure created_at on first insert; upsert otherwise
       await env.DB.prepare(
-        `INSERT INTO themes (id, name, colors, typography, spacing, logo_url, created_at)
-         VALUES (?, ?, ?, ?, ?, ?, COALESCE(?, strftime('%s','now')))
-         ON CONFLICT(id) DO UPDATE SET
-           name = excluded.name,
-           colors = excluded.colors,
-           typography = excluded.typography,
-           spacing = excluded.spacing,
-           logo_url = excluded.logo_url`
+        `
+        INSERT INTO themes (id, name, logo_url, colors, typography, spacing, created_at)
+        VALUES (?, ?, ?, ?, ?, ?, ?)
+        ON CONFLICT(id) DO UPDATE SET
+          name = excluded.name,
+          logo_url = excluded.logo_url,
+          colors = excluded.colors,
+          typography = excluded.typography,
+          spacing = excluded.spacing
+      `
       )
-        .bind(id, name, colors, typography, spacing, logo_url, null)
+        .bind(id, name, logo_url, colors, typography, spacing, created_at)
         .run()
 
-      const row = await env.DB.prepare(
-        `SELECT id, name, colors, typography, spacing, logo_url, created_at FROM themes WHERE id = ?`
-      )
-        .bind(id)
-        .first<ThemeRow>()
-      const parsed = parseThemeRow(row)
-      return json(parsed, 200, corsHeaders(request))
+      return json({ id, name }, { status: 200 }, origin)
     }
 
-    // Get a single theme (full)
-    const themeMatch = path.match(/^\/themes\/([A-Za-z0-9._-]+)$/)
-    if (themeMatch && method === 'GET') {
-      const id = themeMatch[1]
-      const row = await env.DB.prepare(
-        `SELECT id, name, colors, typography, spacing, logo_url, created_at FROM themes WHERE id = ?`
-      )
-        .bind(id)
-        .first<ThemeRow>()
-      if (!row) return json({ error: 'Not found' }, 404, corsHeaders(request))
-      return json(parseThemeRow(row), 200, corsHeaders(request))
+    // GET /themes/:id
+    {
+      const match = url.pathname.match(/^\/themes\/([a-f0-9-]+)$/)
+      if (request.method === 'GET' && match) {
+        const id = match[1]
+        const t = await getTheme(env, id)
+        if (!t) return json({ error: 'Not found' }, { status: 404 }, origin)
+        return json(t, {}, origin)
+      }
     }
 
-    // CSS for a theme
-    const cssMatch = path.match(/^\/themes\/([A-Za-z0-9._-]+)\.css$/)
-    if (cssMatch && method === 'GET') {
-      const id = cssMatch[1]
-      const row = await env.DB.prepare(
-        `SELECT id, name, colors, typography, spacing, logo_url, created_at FROM themes WHERE id = ?`
-      )
-        .bind(id)
-        .first<ThemeRow>()
-      if (!row)
-        return new Response('/* Not found */', {
-          status: 404,
-          headers: corsHeaders(request),
+    // DELETE /themes/:id
+    {
+      const match = url.pathname.match(/^\/themes\/([a-f0-9-]+)$/)
+      if (request.method === 'DELETE' && match) {
+        const id = match[1]
+        await env.DB.prepare('DELETE FROM themes WHERE id = ?').bind(id).run()
+        return json({ ok: true }, {}, origin)
+      }
+    }
+
+    // GET /themes/:id/css  (plain CSS)
+    {
+      const match = url.pathname.match(/^\/themes\/([a-f0-9-]+)\/css$/)
+      if (request.method === 'GET' && match) {
+        const id = match[1]
+        const t = await getTheme(env, id)
+        if (!t) return text('/* Not found */', { status: 404 }, origin)
+        const css = themeToCssVars(t)
+        return new Response(css, {
+          status: 200,
+          headers: {
+            'Content-Type': 'text/css; charset=utf-8',
+            ...corsHeaders(origin),
+          },
         })
-      const theme = parseThemeRow(row)!
-      const css = buildCss(theme)
-      return new Response(css, {
-        status: 200,
-        headers: {
-          'content-type': 'text/css; charset=utf-8',
-          'Cache-Control': 'public, max-age=3600, s-maxage=86400',
-          ...corsHeaders(request),
-        },
-      })
+      }
     }
 
-    // Preview page
-    const prevMatch = path.match(/^\/themes\/([A-Za-z0-9._-]+)\/preview$/)
-    if (prevMatch && method === 'GET') {
-      const id = prevMatch[1]
-      const row = await env.DB.prepare(
-        `SELECT id, name, colors, typography, spacing, logo_url, created_at FROM themes WHERE id = ?`
-      )
-        .bind(id)
-        .first<ThemeRow>()
-      if (!row)
-        return new Response('Not found', {
-          status: 404,
-          headers: corsHeaders(request),
+    // GET /themes/:id/preview (HTML demo)
+    {
+      const match = url.pathname.match(/^\/themes\/([a-f0-9-]+)\/preview$/)
+      if (request.method === 'GET' && match) {
+        const id = match[1]
+        const t = await getTheme(env, id)
+        if (!t) return html('<h1>Theme not found</h1>', { status: 404 }, origin)
+        const css = themeToCssVars(t)
+        const doc = `<!doctype html>
+<html>
+<head>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1"/>
+<title>${t.name || 'Theme Preview'}</title>
+<style>
+${css}
+:root {
+  --bg: var(--color-neutral-light, #ffffff);
+  --fg: var(--color-neutral-dark, #111111);
+  --primary: var(--color-primary, #2563eb);
+  --secondary: var(--color-secondary, #6b7280);
+}
+body {
+  margin: 0;
+  font-family: var(--font-paragraph, system-ui, -apple-system, Segoe UI, Roboto, sans-serif);
+  background: var(--bg);
+  color: var(--fg);
+  line-height: var(--line-height-paragraph, 1.6);
+  letter-spacing: var(--letter-spacing-paragraph, 0em);
+}
+h1,h2,h3 {
+  font-family: var(--font-header, system-ui, -apple-system, Segoe UI, Roboto, sans-serif);
+  line-height: var(--line-height-header, 1.25);
+  letter-spacing: var(--letter-spacing-header, 0em);
+}
+.card {
+  max-width: 760px; margin: 32px auto; padding: 20px;
+  border-radius: 12px; border: 1px solid #e5e7eb; background: #fff;
+}
+.btn {
+  padding: 8px 12px; border-radius: 8px; border: 0;
+  background: var(--primary); color: #fff; font-weight: 600;
+}
+.badge {
+  display:inline-block; padding: 4px 8px; border-radius: 999px;
+  background: var(--secondary); color: #fff; font-size: 12px;
+}
+.code { background:#0b1020; color:#e5e7eb; padding:10px 12px; border-radius:10px; }
+</style>
+</head>
+<body>
+  <div class="card">
+    <h1>${t.name || 'Theme Preview'}</h1>
+    <p>This page uses your theme’s CSS variables from <code>/themes/${id}/css</code>.</p>
+    <p><span class="badge">Badge</span></p>
+    <p><button class="btn">Primary Button</button></p>
+    <pre class="code">${css.replace(/</g, '&lt;')}</pre>
+  </div>
+</body>
+</html>`
+        return html(doc, { status: 200 }, origin)
+      }
+    }
+
+    // ---- UPLOADS ----
+
+    // POST /uploads/logo  (expects multipart form: file=...)
+    {
+      const match = url.pathname === '/uploads/logo'
+      if (request.method === 'POST' && match) {
+        const form = await request.formData()
+        const file =
+          (form.get('file') as File | null) || (form.get('logo') as File | null)
+        const fd = await getFileData(file)
+        if (!fd) return json({ error: 'file missing' }, { status: 400 }, origin)
+
+        const id = crypto.randomUUID()
+        const created_at = Math.floor(Date.now() / 1000)
+        await env.DB.prepare(
+          'INSERT INTO uploads (id, name, mime, data, created_at) VALUES (?,?,?,?,?)'
+        )
+          .bind(id, fd.name, fd.mime, fd.data, created_at)
+          .run()
+
+        return json({ url: `/uploads/${id}` }, { status: 200 }, origin)
+      }
+    }
+
+    // GET /uploads/:id (binary)
+    {
+      const match = url.pathname.match(/^\/uploads\/([a-f0-9-]+)$/)
+      if ((request.method === 'GET' || request.method === 'HEAD') && match) {
+        const id = match[1]
+        let row
+        try {
+          row = await env.DB.prepare(
+            'SELECT mime, data FROM uploads WHERE id = ?'
+          )
+            .bind(id)
+            .first<{ mime: string; data: ArrayBuffer | Uint8Array }>()
+        } catch (error) {
+          return json({ error: 'Database error' }, { status: 500 }, origin)
+        }
+        if (!row) return json({ error: 'Not found' }, { status: 404 }, origin)
+
+        let body
+        if (typeof row.data === 'string') {
+          // If data is base64 encoded string, decode it
+          body = Uint8Array.from(atob(row.data), (c) => c.charCodeAt(0))
+        } else if (row.data instanceof ArrayBuffer) {
+          body = row.data
+        } else if (row.data instanceof Uint8Array) {
+          body = row.data
+        } else if (Array.isArray(row.data)) {
+          // D1 returns binary data as a regular array, convert to Uint8Array
+          body = new Uint8Array(row.data)
+        } else {
+          body = row.data?.buffer ?? row.data
+        }
+        return new Response(body, {
+          status: 200,
+          headers: { 'Content-Type': row.mime, ...corsHeaders(origin) },
         })
-      const html = buildPreviewHTML(parseThemeRow(row)!)
-      return new Response(html, {
-        status: 200,
-        headers: {
-          'content-type': 'text/html; charset=utf-8',
-          'Cache-Control': 'public, max-age=600',
-          ...corsHeaders(request),
-        },
-      })
+      }
     }
 
-    // OG image (SVG)
-    const ogMatch = path.match(/^\/themes\/([A-Za-z0-9._-]+)\.og\.svg$/)
-    if (ogMatch && method === 'GET') {
-      const id = ogMatch[1]
-      const row = await env.DB.prepare(
-        `SELECT id, name, colors, typography, spacing, logo_url, created_at FROM themes WHERE id = ?`
-      )
-        .bind(id)
-        .first<ThemeRow>()
-      if (!row)
-        return new Response('Not found', {
-          status: 404,
-          headers: corsHeaders(request),
-        })
-      const svg = buildOgSvg(parseThemeRow(row)!)
-      return new Response(svg, {
-        status: 200,
-        headers: {
-          'content-type': 'image/svg+xml; charset=utf-8',
-          'Cache-Control': 'public, max-age=3600, s-maxage=86400',
-          ...corsHeaders(request),
-        },
-      })
-    }
-
-    // Optional API homepage
-    if (path === '/' && method === 'GET') {
-      const countRes = await env.DB.prepare(
-        `SELECT COUNT(1) as c FROM themes`
-      ).first<{ c: number }>()
-      const c = countRes?.c ?? 0
-      const html = `<!doctype html><meta charset="utf-8">
-<title>VibeKit API</title>
-<style>body{font-family:system-ui;margin:2rem}code{background:#f3f4f6;padding:.2rem .4rem;border-radius:.25rem}</style>
-<h1>VibeKit API</h1>
-<p>Themes in DB: <strong>${c}</strong></p>
-<ul>
-  <li><a href="/health">/health</a></li>
-  <li><a href="/themes">/themes</a> (GET)</li>
-  <li>POST <code>/themes</code> JSON: { name, colors, typography, spacing, logoUrl }</li>
-</ul>`
-      return new Response(html, {
-        headers: {
-          'content-type': 'text/html; charset=utf-8',
-          ...corsHeaders(request),
-        },
-      })
-    }
-
-    return json({ error: 'Not found' }, 404, corsHeaders(request))
+    return json({ error: 'Not found' }, { status: 404 }, origin)
   },
 }

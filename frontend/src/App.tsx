@@ -18,7 +18,8 @@ const DEFAULT_API_BASE = (() => {
   const h = location.hostname
   // Always use Vite proxy in development to avoid CORS and port issues
   if (h === 'localhost' || h === '127.0.0.1' || h === '0.0.0.0') return '/api'
-  return '/api'
+  // Production - use the Worker URL
+  return 'https://vibekit-api.ajkendal-openai.workers.dev'
 })()
 
 async function getJson<T = any>(res: Response | undefined | null): Promise<T> {

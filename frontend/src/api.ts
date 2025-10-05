@@ -3,7 +3,10 @@ const BASE = 'https://vibekit-api.ajkendal-openai.workers.dev'
 
 // Debug logging - VERY OBVIOUS
 console.log('🚀🚀🚀 VIBEKIT API URL:', BASE)
-console.log('🌍🌍🌍 HOSTNAME:', typeof window !== 'undefined' ? window.location.hostname : 'server-side')
+console.log(
+  '🌍🌍🌍 HOSTNAME:',
+  typeof window !== 'undefined' ? window.location.hostname : 'server-side'
+)
 console.log('✅✅✅ NEW CODE DEPLOYED!')
 
 // Add alert for testing (remove later)

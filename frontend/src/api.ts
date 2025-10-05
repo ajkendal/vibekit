@@ -1,9 +1,17 @@
 // Force production URL for now - will fix hostname detection later
 const BASE = 'https://vibekit-api.ajkendal-openai.workers.dev'
 
-// Debug logging
-console.log('🚀 API BASE URL (forced):', BASE)
-console.log('🌍 Current hostname:', typeof window !== 'undefined' ? window.location.hostname : 'server-side')
+// Debug logging - VERY OBVIOUS
+console.log('🚀🚀🚀 VIBEKIT API URL:', BASE)
+console.log('🌍🌍🌍 HOSTNAME:', typeof window !== 'undefined' ? window.location.hostname : 'server-side')
+console.log('✅✅✅ NEW CODE DEPLOYED!')
+
+// Also log on page load
+if (typeof window !== 'undefined') {
+  window.addEventListener('load', () => {
+    console.log('PAGE LOADED - API BASE:', BASE)
+  })
+}
 
 export async function listThemes() {
   return (await fetch(`${BASE}/themes`)).json()

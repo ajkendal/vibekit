@@ -100,7 +100,9 @@ flowchart TB
 
 ## Deploy
 
-### 1) D1 database (once)
+### Option A: Manual Deploy
+
+#### 1) D1 database (once)
 
 ```bash
 cd api
@@ -110,18 +112,56 @@ npm run d1:create
 npm run d1:migrate
 ```
 
-### 2) Deploy Worker
+#### 2) Deploy Worker
 
 ```bash
 npm run deploy
 ```
 
-### 3) Deploy Pages (frontend/)
+#### 3) Deploy Pages (frontend/)
 
 - Create a Cloudflare Pages project pointing to `frontend/`
 - Build command: `vite build`
 - Output: `dist`
 - **Service Binding**: add a binding named `API` that points to your deployed Worker.
+
+### Option B: Automated Deploy with GitHub Actions
+
+#### 1) Setup Secrets
+
+Add these secrets to your GitHub repository (Settings → Secrets and variables → Actions):
+
+```
+CLOUDFLARE_API_TOKEN=your_cloudflare_api_token
+CLOUDFLARE_ACCOUNT_ID=your_cloudflare_account_id
+VITE_GF_API_KEY=your_google_fonts_api_key (optional)
+```
+
+#### 2) Get Cloudflare Credentials
+
+- **API Token**: Go to [Cloudflare Dashboard](https://dash.cloudflare.com/profile/api-tokens) → Create Token → Custom Token with:
+  - Zone:Zone:Read, Zone:Zone:Edit (for your domain if using custom domain)
+  - Account:Cloudflare Workers:Edit
+  - Account:D1:Edit
+  - Account:Page:Edit
+- **Account ID**: Found in the right sidebar of your Cloudflare Dashboard
+
+#### 3) Create Cloudflare Pages Project
+
+- Go to Cloudflare Dashboard → Pages → Create application → Connect to Git
+- Select your repository and set:
+  - Framework preset: **None** (we'll use GitHub Actions)
+  - Build command: Leave empty
+  - Build output directory: Leave empty
+- Add **Service Binding** named `API` pointing to your Worker
+
+#### 4) Push to Main Branch
+
+The GitHub Actions will automatically:
+- Deploy API when `api/` files change
+- Deploy frontend when `frontend/` files change
+- Run D1 migrations before API deployment
+- Build and deploy to Cloudflare Pages
 
 ### Local Dev
 

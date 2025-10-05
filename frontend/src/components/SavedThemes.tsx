@@ -45,6 +45,15 @@ export default function SavedThemes({
 
   async function remove(id: string) {
     if (!onDelete) return
+
+    // Password protection
+    const requiredPassword = import.meta.env.VITE_DELETE_PASSWORD as string
+    const password = prompt('Enter password to delete theme:')
+    if (password !== requiredPassword) {
+      alert('Incorrect password')
+      return
+    }
+
     setBusyId(id)
     try {
       await onDelete(id)

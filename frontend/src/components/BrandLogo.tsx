@@ -79,15 +79,29 @@ export default function BrandLogo({ value, apiBase, onChange }: Props) {
           </div>
         )}
 
-        <input
-          type='file'
-          accept='image/*'
-          onChange={(e) => {
-            const f = e.target.files?.[0]
-            if (f) onUploadLogo(f)
-          }}
-          disabled={busy}
-        />
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+          <input
+            type='file'
+            accept='image/*'
+            onChange={(e) => {
+              const f = e.target.files?.[0]
+              if (f) onUploadLogo(f)
+            }}
+            disabled={busy}
+          />
+
+          {previewSrc && (
+            <button
+              type='button'
+              className='btn'
+              onClick={() => onChange('')}
+              disabled={busy}
+              style={{ fontSize: '12px', padding: '4px 8px' }}
+            >
+              Remove Logo
+            </button>
+          )}
+        </div>
 
         {busy && <span>Uploading…</span>}
         {err && <span style={{ color: 'crimson' }}>{err}</span>}

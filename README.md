@@ -6,7 +6,7 @@ VibeKit is a theme-design toolkit that lets you craft and share UI tokens — **
 
 ## Project Origins
 
-> VibeKit began as a "vibe-coding" experiment during the **Girls Develop It: Fearless UX: Unleash Your Creative Potential** design workshop. I learned about Vibe Coding from [**Piyush Acharya**](https://github.com/VerisimilitudeX) at **Git Merge 2025**. The project was built in collaboration with [**Krystina Bradley**](https://github.com/kscott2016), who helped shape the user-empathy work, journey mapping, and prototyping. This project was coded with **ChatGPT** and **GitHub Copilot**. – Cloudflare Monorepo (Pages + Worker)
+> This was a Design Project for **Girls Develop It: Fearless UX: Unleash Your Creative Potential** workshop, exploring "vibe-coding" methodology I learned from [**Piyush Acharya**](https://github.com/VerisimilitudeX) at **Git Merge 2025**. The project was built in collaboration with [**Krystina Bradley**](https://github.com/kscott2016), who helped shape the user-empathy work, journey mapping, and prototyping. This project was coded in conjunction with **ChatGPT** and **GitHub Copilot**. – Cloudflare Monorepo (Pages + Worker)
 
 ### Highlights
 

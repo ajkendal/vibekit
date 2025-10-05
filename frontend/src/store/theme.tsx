@@ -1,64 +1,51 @@
-import React, { createContext, useContext, useState } from 'react'
+import React, { createContext, useContext, useMemo, useState } from 'react'
 
-export type Theme = {
-  id?: string
-  name: string
-  logoUrl?: string
-  colors: {
-    neutral_light: string
-    neutral_dark: string
-    primary: string
-    secondary: string
-    tertiary: string
-    danger: string
-    warning: string
-    caution: string
-    success: string
-    surface?: string
-    text?: string
-  }
-  typography: {
-    base: number
-    ratio: number
-    headerFont: string
-    headerWeights: number[]
-    paragraphFont: string
-    paragraphWeights: number[]
-  }
-  spacing: { base: number }
+type Theme = any
+type ThemeCtxValue = {
+  theme: Theme
+  setTheme: React.Dispatch<React.SetStateAction<Theme>>
 }
 
-export const defaultTheme: Theme = {
-  name: 'My Theme',
-  logoUrl: '',
+const ThemeCtx = createContext<ThemeCtxValue | null>(null)
+
+const INITIAL_THEME: Theme = {
+  id: undefined,
+  name: '',
+  logoUrl: null,
   colors: {
     neutral_light: '#ffffff',
-    neutral_dark: '#0b0f14',
+    neutral_dark: '#111111',
     primary: '#2563eb',
-    secondary: '#14b8a6',
-    tertiary: '#8b5cf6',
-    danger: '#ef4444',
+    secondary: '#6b7280',
+    tertiary: '#9333ea',
     warning: '#f59e0b',
-    caution: '#fbbf24',
-    success: '#16a34a',
-    surface: '#ffffff',
-    text: '#111827'
+    danger: '#ef4444',
+    caution: '#f97316',
+    success: '#10b981',
   },
   typography: {
-    base: 16,
-    ratio: 1.25,
     headerFont: 'Inter',
-    headerWeights: [400,600,700],
-    paragraphFont: 'Inter',
-    paragraphWeights: [300,400,500]
+    headerWeights: [400],
+    headerItalic: false,
+    headerLineHeight: 1.25,
+    headerLetterSpacing: 0,
+    paragraphFont: 'Roboto',
+    paragraphWeights: [400],
+    paragraphItalic: false,
+    paragraphLineHeight: 1.6,
+    paragraphLetterSpacing: 0,
   },
-  spacing: { base: 4 }
+  spacing: {},
 }
 
-type Ctx = { theme: Theme; setTheme: React.Dispatch<React.SetStateAction<Theme>> }
-const ThemeContext = createContext<Ctx | null>(null)
-export const ThemeProvider = ({children}:{children:React.ReactNode}) => {
-  const [theme, setTheme] = useState<Theme>(defaultTheme)
-  return <ThemeContext.Provider value={{theme, setTheme}}>{children}</ThemeContext.Provider>
+export function ThemeProvider({ children }: { children: React.ReactNode }) {
+  const [theme, setTheme] = useState<Theme>(INITIAL_THEME)
+  const value = useMemo(() => ({ theme, setTheme }), [theme])
+  return <ThemeCtx.Provider value={value}>{children}</ThemeCtx.Provider>
 }
-export function useTheme(){ const ctx = useContext(ThemeContext); if(!ctx) throw new Error('useTheme inside provider'); return ctx }
+
+export function useTheme() {
+  const ctx = useContext(ThemeCtx)
+  if (!ctx) throw new Error('useTheme must be used within <ThemeProvider>')
+  return ctx
+}

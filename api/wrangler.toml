@@ -16,4 +16,4 @@ bucket_name = "vibekit-logos"
 preview_bucket_name = "vibekit-logos-dev"
 
 [vars]
-FRONTEND_ORIGIN = "https://your-frontend-domain.com"
+FRONTEND_ORIGIN = "https://vibekit.pages.dev"

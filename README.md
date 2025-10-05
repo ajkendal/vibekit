@@ -158,6 +158,7 @@ VITE_GF_API_KEY=your_google_fonts_api_key (optional)
 #### 4) Push to Main Branch
 
 The GitHub Actions will automatically:
+
 - Deploy API when `api/` files change
 - Deploy frontend when `frontend/` files change
 - Run D1 migrations before API deployment
@@ -202,7 +203,7 @@ binding = "LOGOS"
 bucket_name = "vibekit-logos-dev"
 
 [vars]
-FRONTEND_ORIGIN = "https://your-frontend-domain.com"
+FRONTEND_ORIGIN = "https://vibekit.pages.dev"
 ```
 
 **Cloudflare Pages (project settings)**

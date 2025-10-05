@@ -1,15 +1,15 @@
 // @ts-ignore
-const BASE =
+const BASE = 
   import.meta.env?.VITE_API_BASE ||
-  (typeof window !== 'undefined' &&
-  (window.location.hostname === 'vibekit.pages.dev' ||
-    window.location.hostname === 'vibekit.studio' ||
-    window.location.hostname === 'www.vibekit.studio')
-    ? 'https://vibekit-api.ajkendal-openai.workers.dev'
-    : '/api')
+  (typeof window !== 'undefined' && 
+    (window.location.hostname.includes('vibekit.pages.dev') ||
+     window.location.hostname.includes('vibekit.studio'))
+  ) ? 'https://vibekit-api.ajkendal-openai.workers.dev' : '/api'
 
-// Debug: log the BASE URL being used
-console.log('API BASE URL:', BASE)
+// Debug: log all the values
+console.log('Environment VITE_API_BASE:', import.meta.env?.VITE_API_BASE)
+console.log('Window hostname:', typeof window !== 'undefined' ? window.location.hostname : 'server-side')
+console.log('Final API BASE URL:', BASE)
 
 export async function listThemes() {
   return (await fetch(`${BASE}/themes`)).json()

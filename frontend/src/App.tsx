@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState } from 'react'
 import ColorControls from './components/ColorControls'
 import LivePreview from './components/LivePreview'
+// Force rebuild to ensure API URL fix is deployed
 import PaletteGenerator from './components/PaletteGenerator'
 import FontPicker from './components/FontPicker'
 import SavedThemes from './components/SavedThemes'

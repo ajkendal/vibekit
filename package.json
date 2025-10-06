@@ -1,0 +1,32 @@
+{
+  "name": "vibekit",
+  "version": "1.0.0",
+  "description": "VibeKit - Theme generator and CSS framework",
+  "private": true,
+  "scripts": {
+    "dev": "npx concurrently \"npm run dev:api\" \"npm run dev:frontend\"",
+    "dev:frontend": "cd frontend && npm run dev",
+    "dev:api": "cd api && npx wrangler dev src/index.ts",
+    "build": "npm run build:frontend",
+    "build:frontend": "cd frontend && npm run build",
+    "install:all": "cd frontend && npm install && cd ../api && npm install",
+    "clean": "rm -rf frontend/node_modules api/node_modules",
+    "type-check": "cd frontend && npx tsc --noEmit"
+  },
+  "engines": {
+    "node": ">=18.0.0"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/ajkendal/vibekit.git"
+  },
+  "keywords": [
+    "css",
+    "theme",
+    "design-system",
+    "colors",
+    "typography"
+  ],
+  "author": "Amanda J Kendal-Brown",
+  "license": "SEE LICENSE IN LICENSE"
+}

@@ -4,6 +4,15 @@
 
 VibeKit is a theme-design toolkit that lets you craft and share UI tokens — **colors**, **typography**, and **spacing** — with a live preview and a shareable CSS endpoint you can drop into any frontend. The app includes a **Google Fonts picker**, **contrast checker (WCAG)**, and a **public preview** page.
 
+## Inspiration
+
+Explore these helpful color design tools that complement VibeKit's functionality:
+
+- **[Coolors Visualizer](https://coolors.co/visualizer/880d1e-dd2d4a-f26a8d-f49cbb-cbeef3)** - Visualize color palettes in real UI components
+- **[Coolors Contrast Checker](https://coolors.co/contrast-checker/112a46-acc8e5)** - Test color combinations for WCAG compliance
+- **[Mobile Palette Generator](https://mobilepalette.colorion.co/)** - Generate mobile-optimized color schemes
+- **[Adobe Color Wheel](https://color.adobe.com/create/color-wheel)** - Explore color relationships and harmonies
+
 ## Project Origins
 
 > This was a Design Project for **Girls Develop It: Fearless UX: Unleash Your Creative Potential** workshop, exploring "vibe-coding" methodology I learned from [**Piyush Acharya**](https://github.com/VerisimilitudeX) at **Git Merge 2025**. The project was built in collaboration with [**Krystina Bradley**](https://github.com/kscott2016), who helped shape the user-empathy work, journey mapping, and prototyping. This project was coded in conjunction with **ChatGPT** and **GitHub Copilot**. – Cloudflare Monorepo (Pages + Worker)
@@ -98,124 +107,6 @@ flowchart TB
   B8 --> C2
 ```
 
-## Deploy
+## License
 
-### Option A: Manual Deploy
-
-#### 1) D1 database (once)
-
-```bash
-cd api
-npm i
-npm run d1:create
-# Copy the printed database_id into `wrangler.toml` (replace <YOUR_D1_ID>)
-npm run d1:migrate
-```
-
-#### 2) Deploy Worker
-
-```bash
-npm run deploy
-```
-
-#### 3) Deploy Pages (frontend/)
-
-- Create a Cloudflare Pages project pointing to `frontend/`
-- Build command: `vite build`
-- Output: `dist`
-- **Service Binding**: add a binding named `API` that points to your deployed Worker.
-
-### Option B: Automated Deploy with GitHub Actions
-
-#### 1) Setup Secrets
-
-Add these secrets to your GitHub repository (Settings → Secrets and variables → Actions):
-
-```
-CLOUDFLARE_API_TOKEN=your_cloudflare_api_token
-CLOUDFLARE_ACCOUNT_ID=your_cloudflare_account_id
-VITE_GF_API_KEY=your_google_fonts_api_key (optional)
-```
-
-#### 2) Get Cloudflare Credentials
-
-- **API Token**: Go to [Cloudflare Dashboard](https://dash.cloudflare.com/profile/api-tokens) → Create Token → Custom Token with:
-  - Zone:Zone:Read, Zone:Zone:Edit (for your domain if using custom domain)
-  - Account:Cloudflare Workers:Edit
-  - Account:D1:Edit
-  - Account:Page:Edit
-- **Account ID**: Found in the right sidebar of your Cloudflare Dashboard
-
-#### 3) Create Cloudflare Pages Project
-
-- Go to Cloudflare Dashboard → Pages → Create application → Connect to Git
-- Select your repository and set:
-  - Framework preset: **None** (we'll use GitHub Actions)
-  - Build command: Leave empty
-  - Build output directory: Leave empty
-- Add **Service Binding** named `API` pointing to your Worker
-
-#### 4) Push to Main Branch
-
-The GitHub Actions will automatically:
-
-- Deploy API when `api/` files change
-- Deploy frontend when `frontend/` files change
-- Run D1 migrations before API deployment
-- Build and deploy to Cloudflare Pages
-
-### Local Dev
-
-You can run Worker and SPA separately, or use `wrangler pages dev` for the Pages+Functions experience.
-
-## API
-
-**Core Themes**
-
-- `GET /themes` → list all themes
-- `POST /themes` → create/update theme `{ name, colors, typography, spacing, logoUrl }`
-- `GET /themes/:id` → get theme details
-- `DELETE /themes/:id` → delete theme
-
-**Shareable**
-
-- `GET /themes/:id/css` → theme CSS variables (text/css)
-- `GET /themes/:id/preview` → public HTML preview page
-
-**File Uploads**
-
-- `POST /uploads/logo` → upload logo file, returns `{ url: "/uploads/:id" }`
-- `GET /uploads/:id` → serve uploaded file (binary with proper Content-Type)
-- `HEAD /uploads/:id` → check if file exists
-
-## Configuration
-
-**Cloudflare Worker (`api/wrangler.toml`)**
-
-```toml
-[[d1_databases]]
-binding = "DB"
-database_name = "vibekit"
-database_id = "<YOUR_D1_ID>"
-
-[[r2_buckets]]
-binding = "LOGOS"
-bucket_name = "vibekit-logos-dev"
-
-[vars]
-FRONTEND_ORIGIN = "https://vibekit.pages.dev"
-```
-
-**Cloudflare Pages (project settings)**
-
-- Framework preset: **Vite**
-- Build command: `npm run build`
-- Build output directory: `dist`
-- Root directory: `frontend`
-
-**Frontend Environment (optional)**
-
-```bash
-# Enable full Google Fonts catalog with search
-VITE_GF_API_KEY=YOUR_GOOGLE_FONTS_API_KEY
-```
+This project is licensed under a **View-Only License** — see the [LICENSE](./LICENSE) file for details.

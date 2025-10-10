@@ -110,6 +110,7 @@ function parseTheme(row: ThemeRow | null) {
 function themeToCssVars(theme: any) {
   const c = theme?.colors || {}
   const t = theme?.typography || {}
+  const s = theme?.spacing || {}
   const lines: string[] = []
   const push = (k: string, v?: string | number) =>
     v != null && lines.push(`${k}: ${v};`)
@@ -151,6 +152,10 @@ function themeToCssVars(theme: any) {
     push('--letter-spacing-header', `${t.headerLetterSpacing}em`)
   if (typeof t.paragraphLetterSpacing === 'number')
     push('--letter-spacing-paragraph', `${t.paragraphLetterSpacing}em`)
+
+  // Border radius from spacing
+  if (typeof s.borderRadius === 'number')
+    push('--border-radius', `${s.borderRadius}px`)
 
   return `:root{\n  ${lines.join('\n  ')}\n}`
 }

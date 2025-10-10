@@ -54,6 +54,7 @@ export default function LivePreview({ apiBase }: Props) {
 
   const colors = theme?.colors || {}
   const logoUrlResolved = resolveLogoForUI(theme?.logoUrl, apiBase)
+  const borderRadius = theme?.spacing?.borderRadius ?? 12
 
   const headerFont = theme?.typography?.headerFont || 'Inter'
   const headerWeight =
@@ -106,7 +107,7 @@ export default function LivePreview({ apiBase }: Props) {
         style={{
           width: 72,
           height: 72,
-          borderRadius: 12,
+          borderRadius: `${borderRadius}px`,
           border: '1px dashed #cbd5e1',
           display: 'grid',
           placeItems: 'center',
@@ -126,7 +127,7 @@ export default function LivePreview({ apiBase }: Props) {
         style={{
           marginTop: 8,
           padding: 16,
-          borderRadius: 12,
+          borderRadius: `${borderRadius}px`,
           background: bg,
           color: fg,
           border: '1px solid #e5e7eb',
@@ -200,7 +201,7 @@ export default function LivePreview({ apiBase }: Props) {
               key={c.key}
               style={{
                 padding: '6px 10px',
-                borderRadius: 999,
+                borderRadius: `${borderRadius}px`,
                 fontSize: 12,
                 background: c.bg,
                 color: c.fg,
@@ -218,7 +219,7 @@ export default function LivePreview({ apiBase }: Props) {
           <button
             style={{
               padding: '8px 12px',
-              borderRadius: 8,
+              borderRadius: `${borderRadius}px`,
               border: 'none',
               background: colors.primary || '#2563eb',
               color: textOn(colors.primary || '#2563eb'),
@@ -230,7 +231,7 @@ export default function LivePreview({ apiBase }: Props) {
           <button
             style={{
               padding: '8px 12px',
-              borderRadius: 8,
+              borderRadius: `${borderRadius}px`,
               border: '1px solid #e5e7eb',
               background: 'transparent',
               color: fg,

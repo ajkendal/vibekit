@@ -85,21 +85,24 @@ export default function SavedThemes({
   }
 
   function getCssUrl(id: string) {
+    // In development, use the local API server directly
     if (
-      location.hostname === 'localhost' ||
-      location.hostname === '127.0.0.1'
+      (location.hostname === 'localhost' ||
+        location.hostname === '127.0.0.1') &&
+      (apiBase === '/api' || !apiBase.startsWith('http'))
     ) {
-      return `http://127.0.0.1:61341/themes/${id}/css`
+      return `http://127.0.0.1:8787/themes/${id}/css`
     }
     return `${apiBase}/themes/${id}/css`
   }
 
   function previewUrl(id: string) {
     if (
-      location.hostname === 'localhost' ||
-      location.hostname === '127.0.0.1'
+      (location.hostname === 'localhost' ||
+        location.hostname === '127.0.0.1') &&
+      (apiBase === '/api' || !apiBase.startsWith('http'))
     ) {
-      return `http://127.0.0.1:61341/themes/${id}/preview`
+      return `http://127.0.0.1:8787/themes/${id}/preview`
     }
     return `${apiBase}/themes/${id}/preview`
   }

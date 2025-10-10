@@ -107,7 +107,7 @@ export default function LivePreview({ apiBase }: Props) {
         style={{
           width: 72,
           height: 72,
-          borderRadius: `${borderRadius}px`,
+          borderRadius: '6px',
           border: '1px dashed #cbd5e1',
           display: 'grid',
           placeItems: 'center',

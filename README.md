@@ -74,10 +74,6 @@ Explore these helpful color design tools that complement VibeKit's functionality
 
 ## 🛠️ Tech Stack & Tools
 
-<div style="display: flex; flex-wrap: wrap; gap: 40px;">
-
-<div style="flex: 1; min-width: 300px;">
-
 ### 🌐 Frontend
 
 - ⚡ **Vite** — Lightning-fast dev server
@@ -85,31 +81,23 @@ Explore these helpful color design tools that complement VibeKit's functionality
 - 🐜 **Ant Design** — Enterprise-class UI components
 - 🎨 **CSS Variables** — Dynamic theming engine
 
-### 👨‍💻 Development
-
-- 📘 **TypeScript** — Type-safe development
-- 🔍 **ESLint** — Code quality & formatting
-- 🔨 **Wrangler** — Cloudflare dev toolkit
-
-</div>
-
-<div style="flex: 1; min-width: 300px;">
-
 ### ☁️ Backend
 
 - 🔧 **Cloudflare Workers** — Serverless edge compute
 - 💾 **D1 Database** — Global SQLite at the edge
 - 📦 **R2 Storage** — Object storage for assets
 
+### 👨‍💻 Development
+
+- 📘 **TypeScript** — Type-safe development
+- 🔍 **ESLint** — Code quality & formatting
+- 🔨 **Wrangler** — Cloudflare dev toolkit
+
 ### 🎨 Design & UX
 
 - ✏️ **Sketched Wireframes** — Concept & user flows
 - 🎯 **Canva** — Journey & empathy mapping
 - 🔷 **Figma** — UI/UX design & prototyping
-
-</div>
-
-</div>
 
 ### 🤖 AI-Powered Development
 

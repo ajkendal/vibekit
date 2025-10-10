@@ -17,7 +17,9 @@ Explore these helpful color design tools that complement VibeKit's functionality
 
 ## Project Origins
 
-> This was a Design Project for **Girls Develop It: Fearless UX: Unleash Your Creative Potential** workshop, exploring "vibe-coding" methodology I learned from [**Piyush Acharya**](https://github.com/VerisimilitudeX) at **Git Merge 2025**. The project was built in collaboration with [**Krystina Bradley**](https://github.com/kscott2016), who helped shape the user-empathy work, journey mapping, and prototyping. This project was coded in conjunction with **ChatGPT** and **GitHub Copilot**. – Cloudflare Monorepo (Pages + Worker)
+> **VibeKit** emerged from the **Girls Develop It: Fearless UX: Unleash Your Creative Potential** workshop, where I applied the "vibe-coding" methodology I had learned from [**Piyush Acharya**](https://github.com/VerisimilitudeX) at **Git Merge 2025**.
+>
+> Built in collaboration with [**Krystina Bradley**](https://github.com/kscott2016), who contributed invaluable user-empathy research, journey mapping, and prototyping expertise. The technical implementation was developed using **ChatGPT** and **GitHub Copilot** as coding companions, showcasing modern AI-assisted development workflows.
 
 ## Design Documentation
 
@@ -72,9 +74,9 @@ Explore these helpful color design tools that complement VibeKit's functionality
 
 ## 🛠️ Tech Stack & Tools
 
-<table>
-<tr>
-<td>
+<table style="border: none; border-collapse: collapse;">
+<tr style="border: none;">
+<td style="border: none; vertical-align: top; padding-right: 40px;">
 
 ### 🌐 Frontend
 
@@ -84,7 +86,7 @@ Explore these helpful color design tools that complement VibeKit's functionality
 - 🎨 **CSS Variables** — Dynamic theming engine
 
 </td>
-<td>
+<td style="border: none; vertical-align: top; padding-left: 40px;">
 
 ### ☁️ Backend
 
@@ -94,8 +96,8 @@ Explore these helpful color design tools that complement VibeKit's functionality
 
 </td>
 </tr>
-<tr>
-<td>
+<tr style="border: none;">
+<td style="border: none; vertical-align: top; padding-right: 40px;">
 
 ### 👨‍💻 Development
 
@@ -104,7 +106,7 @@ Explore these helpful color design tools that complement VibeKit's functionality
 - 🔨 **Wrangler** — Cloudflare dev toolkit
 
 </td>
-<td>
+<td style="border: none; vertical-align: top; padding-left: 40px;">
 
 ### 🎨 Design & UX
 
@@ -114,8 +116,8 @@ Explore these helpful color design tools that complement VibeKit's functionality
 
 </td>
 </tr>
-<tr>
-<td colspan="2">
+<tr style="border: none;">
+<td colspan="2" style="border: none;">
 
 ### 🤖 AI-Powered Development
 

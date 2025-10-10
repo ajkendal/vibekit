@@ -1,3 +1,5 @@
+<img src="frontend/public/brand/VibeKit_Logo.svg" alt="VibeKit Logo" width="60" align="left" style="margin-right: 20px;" />
+
 # VibeKit
 
 ## About VibeKit
@@ -16,6 +18,19 @@ Explore these helpful color design tools that complement VibeKit's functionality
 ## Project Origins
 
 > This was a Design Project for **Girls Develop It: Fearless UX: Unleash Your Creative Potential** workshop, exploring "vibe-coding" methodology I learned from [**Piyush Acharya**](https://github.com/VerisimilitudeX) at **Git Merge 2025**. The project was built in collaboration with [**Krystina Bradley**](https://github.com/kscott2016), who helped shape the user-empathy work, journey mapping, and prototyping. This project was coded in conjunction with **ChatGPT** and **GitHub Copilot**. – Cloudflare Monorepo (Pages + Worker)
+
+## Design Documentation
+
+### 🎨 Figma Design Files
+
+- **[VibeKit Design System](https://www.figma.com/design/wpXKuArJk5VSirui5fZzyi/VibeKit?node-id=0-1&t=6y1SZvfkssgYviG3-1)** - Complete UI/UX designs, component library, and interactive prototypes
+
+### 📋 UX Research & Documentation
+
+- **[Empathy Map](frontend/public/pdf/Empathy%20Map.pdf)** - User research insights and emotional journey mapping to understand target user needs and pain points
+- **[User Journey Map](frontend/public/pdf/Journey%20Map.pdf)** - End-to-end user experience flow from discovery to theme implementation and sharing
+- **[UX Features Analysis](frontend/public/pdf/UX%20Features.pdf)** - Detailed feature specifications, user stories, and interaction design documentation
+- **[Prototype Documentation](frontend/public/pdf/Prototype.pdf)** - Design iteration process, wireframe evolution, and prototype testing results
 
 ### Features & Components
 
@@ -55,37 +70,61 @@ Explore these helpful color design tools that complement VibeKit's functionality
 - **CSS Variables Panel** with organized grouping and copy-to-clipboard functionality
 - **Instant feedback** across all UI components and preview elements
 
-### Tools & Technologies
+## 🛠️ Tech Stack & Tools
 
-**Frontend**
+<table>
+<tr>
+<td>
 
-- **Vite** - Fast build tool and dev server
-- **React 18** - UI framework with TypeScript
-- **Ant Design** - UI component library with React 18 compatibility
-- **CSS Variables** - Dynamic theming system
+### 🌐 Frontend
 
-**Backend**
+- ⚡ **Vite** — Lightning-fast dev server
+- ⚛️ **React 18** — Modern UI framework + TypeScript
+- 🐜 **Ant Design** — Enterprise-class UI components
+- 🎨 **CSS Variables** — Dynamic theming engine
 
-- **Cloudflare Workers** - Edge compute platform
-- **D1 Database** - Serverless SQLite database
-- **R2 Storage** - Object storage for uploaded assets
+</td>
+<td>
 
-**Development**
+### ☁️ Backend
 
-- **TypeScript** - Type-safe development
-- **ESLint** - Code linting and formatting
-- **Wrangler** - Cloudflare development CLI
+- 🔧 **Cloudflare Workers** — Serverless edge compute
+- 💾 **D1 Database** — Global SQLite at the edge
+- 📦 **R2 Storage** — Object storage for assets
 
-**Design**
+</td>
+</tr>
+<tr>
+<td>
 
-- **Sketched Wireframes** - Initial concept sketches and user flow mapping
-- **Canva** - User journey mapping and empathy mapping exercises
-- **Figma** - UI/UX design and prototyping
+### 👨‍💻 Development
 
-**AI Tools**
+- 📘 **TypeScript** — Type-safe development
+- 🔍 **ESLint** — Code quality & formatting
+- 🔨 **Wrangler** — Cloudflare dev toolkit
 
-- **ChatGPT** - Code generation and problem solving
-- **GitHub Copilot** - AI pair programming
+</td>
+<td>
+
+### 🎨 Design & UX
+
+- ✏️ **Sketched Wireframes** — Concept & user flows
+- 🎯 **Canva** — Journey & empathy mapping
+- 🔷 **Figma** — UI/UX design & prototyping
+
+</td>
+</tr>
+<tr>
+<td colspan="2">
+
+### 🤖 AI-Powered Development
+
+- 💬 **ChatGPT** — Code generation & problem solving
+- 🧠 **GitHub Copilot** — AI pair programming & suggestions
+
+</td>
+</tr>
+</table>
 
 ### Future Opportunities
 

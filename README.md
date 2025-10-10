@@ -17,16 +17,43 @@ Explore these helpful color design tools that complement VibeKit's functionality
 
 > This was a Design Project for **Girls Develop It: Fearless UX: Unleash Your Creative Potential** workshop, exploring "vibe-coding" methodology I learned from [**Piyush Acharya**](https://github.com/VerisimilitudeX) at **Git Merge 2025**. The project was built in collaboration with [**Krystina Bradley**](https://github.com/kscott2016), who helped shape the user-empathy work, journey mapping, and prototyping. This project was coded in conjunction with **ChatGPT** and **GitHub Copilot**. – Cloudflare Monorepo (Pages + Worker)
 
-### Highlights
+### Features & Components
 
-- **Inline Live Preview (editor):** See changes instantly on the main page driven by your neutral tokens.
-- **Google Fonts:** Pick separate **Header** and **Paragraph** families and weights. Optional full catalog + search via `VITE_GF_API_KEY`.
-- **Color Tokens:** Neutral, Primary, Secondary, Tertiary, Danger, Warning, Caution, Success. All exported as CSS variables.
-- **Contrast Checker:** Quick AA/AAA checks for key pairs.
-- **Palette Generator:** Get triadic/analogous/complementary suggestions from a seed color and apply with one click.
-- **Logos:** **upload your own** (PNG/SVG/JPEG/WebP) — stored in **R2** and served via `/api/assets/*`.
-- **Shareable:** `/api/themes/{id}.css` (1‑day cache) and `/api/themes/{id}/preview` (5‑min cache).
-- **Docs/FAQ:** Available at `#/docs` inside the app.
+**🎨 Color System**
+
+- **HEX-only format** for consistency and performance across all color tokens
+- **8 semantic colors:** Neutral (Light/Dark), Primary, Secondary, Tertiary, Danger, Warning, Caution, Success
+- **Palette Generator:** Triadic/analogous/complementary suggestions from seed colors with one-click application
+- **Contrast Checker:** WCAG AA/AAA compliance validation with real-time accessibility scoring
+
+**🔄 Border Radius Control**
+
+- **Interactive slider (0-25px)** with instant preview on chips, buttons, and containers
+- **CSS variable integration** (`--border-radius`) with live theme updates
+- **Logo preservation** - brand assets unaffected by border radius theming
+
+**🔤 Typography Management**
+
+- **Google Fonts integration** with separate Header/Paragraph font selection
+- **Advanced controls:** Weight, style, line height, and letter spacing options
+- **Optional full catalog** search via `VITE_GF_API_KEY` environment variable
+
+**🖼️ Brand Assets**
+
+- **Multi-format support:** PNG, SVG, JPEG, WebP uploads stored in Cloudflare R2
+- **Reliable hosting** with automatic fallback placeholders and error handling
+
+**💾 Theme Management**
+
+- **Full CRUD operations** with D1 database persistence and theme duplication
+- **Shareable exports:** `/themes/{id}.css` (cached) and `/themes/{id}/preview` demo pages
+- **Development-friendly:** Dynamic API detection for local vs production environments
+
+**⚡ Live Preview System**
+
+- **Real-time updates** using direct theme values without CSS injection dependencies
+- **CSS Variables Panel** with organized grouping and copy-to-clipboard functionality
+- **Instant feedback** across all UI components and preview elements
 
 ### Tools & Technologies
 
@@ -34,6 +61,7 @@ Explore these helpful color design tools that complement VibeKit's functionality
 
 - **Vite** - Fast build tool and dev server
 - **React 18** - UI framework with TypeScript
+- **Ant Design** - UI component library with React 18 compatibility
 - **CSS Variables** - Dynamic theming system
 
 **Backend**
@@ -50,6 +78,8 @@ Explore these helpful color design tools that complement VibeKit's functionality
 
 **Design**
 
+- **Sketched Wireframes** - Initial concept sketches and user flow mapping
+- **Canva** - User journey mapping and empathy mapping exercises
 - **Figma** - UI/UX design and prototyping
 
 **AI Tools**
@@ -68,14 +98,15 @@ Explore these helpful color design tools that complement VibeKit's functionality
 
 ```mermaid
 flowchart TB
-  subgraph Frontend["Frontend (Vite + React + TS)"]
+  subgraph Frontend["Frontend (Vite + React + TS + Ant Design)"]
     A1[Font Picker]
-    A2[Color Controls]
-    A3[Contrast Checker]
-    A4[Brand Logo Upload]
-    A5[Saved Themes]
-    A6[Live Preview]
-    A7[CSS Variables Panel]
+    A2[Color Controls - HEX Only]
+    A3[Border Radius Control]
+    A4[Contrast Checker]
+    A5[Brand Logo Upload]
+    A6[Saved Themes]
+    A7[Live Preview]
+    A8[CSS Variables Panel]
   end
 
   subgraph API["Cloudflare Worker API"]

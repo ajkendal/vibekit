@@ -35,7 +35,9 @@ const INITIAL_THEME: Theme = {
     paragraphLineHeight: 1.6,
     paragraphLetterSpacing: 0,
   },
-  spacing: {},
+  spacing: {
+    borderRadius: 8,
+  },
 }
 
 export function ThemeProvider({ children }: { children: React.ReactNode }) {

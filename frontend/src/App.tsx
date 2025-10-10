@@ -9,6 +9,7 @@ import BrandLogo from './components/BrandLogo'
 import CssVarsPanel from './components/CssVarsPanel'
 import ThemeHeader from './components/ThemeHeader'
 import ContrastChecker from './components/ContrastChecker'
+import BorderRadius from './components/BorderRadius'
 import { useTheme } from './store/theme'
 
 type ThemeRow = { id: string; name?: string; [k: string]: any }
@@ -157,6 +158,11 @@ export function themeToCssVars(theme: any, fmt: ColorFormat = 'hex') {
   if (typeof t.paragraphLetterSpacing === 'number')
     push('--letter-spacing-paragraph', `${t.paragraphLetterSpacing}em`)
 
+  // Border radius from spacing
+  const s = theme?.spacing || {}
+  if (typeof s.borderRadius === 'number')
+    push('--border-radius', `${s.borderRadius}px`)
+
   return `:root{\n  ${lines.join('\n  ')}\n}`
 }
 /* ───────────────────────────────────────────────────────── */
@@ -181,9 +187,6 @@ export default function App() {
   useEffect(() => {
     setThemeName(theme.name || '')
   }, [theme.name])
-
-  // NEW: color variable display format (affects ColorControls & CSS Vars panel)
-  const [colorFormat, setColorFormat] = useState<ColorFormat>('hex')
 
   async function fetchThemes() {
     setLoading(true)
@@ -382,7 +385,7 @@ export default function App() {
             paragraphLetterSpacing: paragraphLS,
           },
         },
-        colorFormat
+        'hex'
       ),
     [
       theme,
@@ -394,7 +397,6 @@ export default function App() {
       paragraphWeight,
       paragraphLH,
       paragraphLS,
-      colorFormat,
     ]
   )
 
@@ -488,7 +490,7 @@ export default function App() {
         </div>
 
         <div className='card' style={{ flex: '1 1 360px' }}>
-          <ColorControls format={colorFormat} onChangeFormat={setColorFormat} />
+          <ColorControls />
         </div>
       </section>
 
@@ -497,6 +499,9 @@ export default function App() {
         apiBase={apiBase}
         onChange={(url) => setTheme((p: any) => ({ ...p, logoUrl: url }))}
       />
+
+      <BorderRadius />
+
       <section
         className='row'
         style={{ display: 'flex', gap: 16, flexWrap: 'wrap' }}

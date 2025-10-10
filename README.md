@@ -74,9 +74,9 @@ Explore these helpful color design tools that complement VibeKit's functionality
 
 ## 🛠️ Tech Stack & Tools
 
-<table style="border: none; border-collapse: collapse;">
-<tr style="border: none;">
-<td style="border: none; vertical-align: top; padding-right: 40px;">
+<div style="display: flex; flex-wrap: wrap; gap: 40px;">
+
+<div style="flex: 1; min-width: 300px;">
 
 ### 🌐 Frontend
 
@@ -85,8 +85,15 @@ Explore these helpful color design tools that complement VibeKit's functionality
 - 🐜 **Ant Design** — Enterprise-class UI components
 - 🎨 **CSS Variables** — Dynamic theming engine
 
-</td>
-<td style="border: none; vertical-align: top; padding-left: 40px;">
+### 👨‍💻 Development
+
+- 📘 **TypeScript** — Type-safe development
+- 🔍 **ESLint** — Code quality & formatting
+- 🔨 **Wrangler** — Cloudflare dev toolkit
+
+</div>
+
+<div style="flex: 1; min-width: 300px;">
 
 ### ☁️ Backend
 
@@ -94,39 +101,20 @@ Explore these helpful color design tools that complement VibeKit's functionality
 - 💾 **D1 Database** — Global SQLite at the edge
 - 📦 **R2 Storage** — Object storage for assets
 
-</td>
-</tr>
-<tr style="border: none;">
-<td style="border: none; vertical-align: top; padding-right: 40px;">
-
-### 👨‍💻 Development
-
-- 📘 **TypeScript** — Type-safe development
-- 🔍 **ESLint** — Code quality & formatting
-- 🔨 **Wrangler** — Cloudflare dev toolkit
-
-</td>
-<td style="border: none; vertical-align: top; padding-left: 40px;">
-
 ### 🎨 Design & UX
 
 - ✏️ **Sketched Wireframes** — Concept & user flows
 - 🎯 **Canva** — Journey & empathy mapping
 - 🔷 **Figma** — UI/UX design & prototyping
 
-</td>
-</tr>
-<tr style="border: none;">
-<td colspan="2" style="border: none;">
+</div>
+
+</div>
 
 ### 🤖 AI-Powered Development
 
 - 💬 **ChatGPT** — Code generation & problem solving
 - 🧠 **GitHub Copilot** — AI pair programming & suggestions
-
-</td>
-</tr>
-</table>
 
 ### Future Opportunities
 

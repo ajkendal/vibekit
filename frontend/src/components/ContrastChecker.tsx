@@ -102,9 +102,10 @@ export default function ContrastChecker() {
 
   const colors = theme?.colors || {}
   const light = colors.neutral_light || '#ffffff'
-  const dark = colors.neutral_dark || '#111111'
+  const mid = colors.neutral_mid || '#6b7280'
+  const dark = colors.neutral_dark || '#000000'
   const primary = colors.primary || '#2563eb'
-  const secondary = colors.secondary || '#6b7280'
+  const secondary = colors.secondary || '#3b82f6'
   const tertiary = colors.tertiary || '#9333ea'
 
   const rows = useMemo(() => {
@@ -115,7 +116,13 @@ export default function ContrastChecker() {
     }
     return [
       mk('Light text on Dark background', light, dark),
+      mk('Mid text on Dark background', mid, dark),
+
       mk('Dark text on Light background', dark, light),
+      mk('Mid text on Light background', mid, light),
+
+      mk('Light text on Mid background', light, mid),
+      mk('Dark text on Mid background', dark, mid),
 
       mk('Light text on Primary', light, primary),
       mk('Dark text on Primary', dark, primary),
@@ -126,7 +133,7 @@ export default function ContrastChecker() {
       mk('Light text on Tertiary', light, tertiary),
       mk('Dark text on Tertiary', dark, tertiary),
     ]
-  }, [light, dark, primary, secondary, tertiary])
+  }, [light, mid, dark, primary, secondary, tertiary])
 
   return (
     <section className='card' style={{ flex: '1 1 460px' }}>

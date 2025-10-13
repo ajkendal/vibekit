@@ -121,9 +121,10 @@ export function themeToCssVars(theme: any, fmt: ColorFormat = 'hex') {
   // ✅ Always include all keys (with defaults if missing)
   const DEFAULTS: Record<string, string> = {
     neutral_light: '#ffffff',
-    neutral_dark: '#111111',
+    neutral_mid: '#6b7280',
+    neutral_dark: '#000000',
     primary: '#2563eb',
-    secondary: '#6b7280',
+    secondary: '#3b82f6',
     tertiary: '#9333ea',
     danger: '#ef4444',
     warning: '#f59e0b',

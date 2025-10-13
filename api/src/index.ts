@@ -117,6 +117,7 @@ function themeToCssVars(theme: any) {
 
   const keys = [
     'neutral_light',
+    'neutral_mid',
     'neutral_dark',
     'primary',
     'secondary',

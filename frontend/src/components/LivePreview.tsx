@@ -75,7 +75,7 @@ export default function LivePreview({ apiBase }: Props) {
     (theme?.typography?.paragraphLetterSpacing as number | undefined) ?? 0
 
   const bg = colors.neutral_light || '#ffffff'
-  const fg = colors.neutral_dark || '#111111'
+  const fg = colors.neutral_dark || '#000000'
 
   const [imgSrc, setImgSrc] = useState<string>(logoUrlResolved)
   useEffect(() => {
@@ -86,6 +86,7 @@ export default function LivePreview({ apiBase }: Props) {
     () =>
       (
         [
+          'neutral_mid',
           'primary',
           'secondary',
           'tertiary',

@@ -39,7 +39,8 @@ Explore these helpful color design tools that complement VibeKit's functionality
 **🎨 Color System**
 
 - **HEX-only format** for consistency and performance across all color tokens
-- **8 semantic colors:** Neutral (Light/Dark), Primary, Secondary, Tertiary, Danger, Warning, Caution, Success
+- **10 semantic colors:** Neutral (Light/Mid/Dark), Primary, Secondary, Tertiary, Danger, Warning, Caution, Success
+- **Automatic color naming** via [The Color API](https://www.thecolorapi.com/) integration for human-readable color identification
 - **Palette Generator:** Triadic/analogous/complementary suggestions from seed colors with one-click application
 - **Contrast Checker:** WCAG AA/AAA compliance validation with real-time accessibility scoring
 
@@ -98,6 +99,11 @@ Explore these helpful color design tools that complement VibeKit's functionality
 - ✏️ **Sketched Wireframes** — Concept & user flows
 - 🎯 **Canva** — Journey & empathy mapping
 - 🔷 **Figma** — UI/UX design & prototyping
+
+### 🌐 External APIs
+
+- 🎨 **[The Color API](https://www.thecolorapi.com/)** — Human-readable color names & identification
+- 🔤 **[Google Fonts API](https://developers.google.com/fonts)** — Web font catalog & font loading
 
 ### 🤖 AI-Powered Development
 

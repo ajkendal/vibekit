@@ -106,8 +106,13 @@ function deriveNeutralsFrom(baseHex: string) {
   const b = hexToHsl(baseHex)
   const desat: HSL = { h: b.h, s: clamp(b.s * 0.08), l: b.l }
   const light = { ...desat, l: 0.96 }
+  const mid = { ...desat, l: 0.55 }
   const dark = { ...desat, l: 0.14 }
-  return { neutral_light: hslToHex(light), neutral_dark: hslToHex(dark) }
+  return {
+    neutral_light: hslToHex(light),
+    neutral_mid: hslToHex(mid),
+    neutral_dark: hslToHex(dark),
+  }
 }
 
 function buildPalette(baseHex: string, scheme: Scheme) {
@@ -190,6 +195,7 @@ export default function PaletteGenerator() {
       if (deriveNeutrals) {
         const ns = deriveNeutralsFrom(result.primary)
         next.colors.neutral_light = ns.neutral_light
+        next.colors.neutral_mid = ns.neutral_mid
         next.colors.neutral_dark = ns.neutral_dark
       }
       return next

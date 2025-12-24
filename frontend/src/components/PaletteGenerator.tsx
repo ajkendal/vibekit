@@ -1,172 +1,119 @@
 import { useMemo, useState } from 'react'
 import { useTheme } from '../store/theme'
+import styles from '../styles/PaletteGenerator.module.scss'
 
-type HSL = { h: number; s: number; l: number }
 type Scheme = 'Monochromatic' | 'Analogous' | 'Complementary' | 'Triadic'
 
-function clamp(n: number, min = 0, max = 1) {
-  return Math.min(max, Math.max(min, n))
-}
-function rotateHue(h: number, deg: number) {
-  let v = (h + deg) % 360
-  if (v < 0) v += 360
-  return v
+// Simple hex color manipulation functions
+function hexToRgb(hex: string): { r: number; g: number; b: number } {
+  const h = hex.replace('#', '')
+  const r = parseInt(h.substring(0, 2), 16)
+  const g = parseInt(h.substring(2, 4), 16)
+  const b = parseInt(h.substring(4, 6), 16)
+  return { r, g, b }
 }
 
-function hexToHsl(hex: string): HSL {
-  let h = hex.trim().replace('#', '')
-  if (!/^[0-9a-fA-F]{3,6}$/.test(h)) h = '2563eb'
-  if (h.length === 3)
-    h = h
-      .split('')
-      .map((c) => c + c)
-      .join('')
-  const r = parseInt(h.slice(0, 2), 16) / 255
-  const g = parseInt(h.slice(2, 4), 16) / 255
-  const b = parseInt(h.slice(4, 6), 16) / 255
-  const max = Math.max(r, g, b),
-    min = Math.min(r, g, b)
-  let hDeg = 0
-  const l = (max + min) / 2
-  const d = max - min
-  const s = d === 0 ? 0 : d / (1 - Math.abs(2 * l - 1))
-  if (d !== 0) {
-    switch (max) {
-      case r:
-        hDeg = ((g - b) / d) % 6
-        break
-      case g:
-        hDeg = (b - r) / d + 2
-        break
-      case b:
-        hDeg = (r - g) / d + 4
-        break
-    }
-    hDeg *= 60
-    if (hDeg < 0) hDeg += 360
-  }
-  return { h: hDeg, s: clamp(s), l: clamp(l) }
+function rgbToHex(r: number, g: number, b: number): string {
+  const toHex = (n: number) =>
+    Math.round(Math.max(0, Math.min(255, n)))
+      .toString(16)
+      .padStart(2, '0')
+  return `#${toHex(r)}${toHex(g)}${toHex(b)}`
 }
-function hslToHex({ h, s, l }: HSL): string {
-  s = clamp(s)
-  l = clamp(l)
-  const c = (1 - Math.abs(2 * l - 1)) * s
-  const x = c * (1 - Math.abs(((h / 60) % 2) - 1))
-  const m = l - c / 2
-  let r = 0,
-    g = 0,
-    b = 0
-  if (0 <= h && h < 60) {
-    r = c
-    g = x
-    b = 0
-  } else if (60 <= h && h < 120) {
-    r = x
-    g = c
-    b = 0
-  } else if (120 <= h && h < 180) {
-    r = 0
-    g = c
-    b = x
-  } else if (180 <= h && h < 240) {
-    r = 0
-    g = x
-    b = c
-  } else if (240 <= h && h < 300) {
-    r = x
-    g = 0
-    b = c
-  } else {
-    r = c
-    g = 0
-    b = x
-  }
-  const R = Math.round((r + m) * 255)
-    .toString(16)
-    .padStart(2, '0')
-  const G = Math.round((g + m) * 255)
-    .toString(16)
-    .padStart(2, '0')
-  const B = Math.round((b + m) * 255)
-    .toString(16)
-    .padStart(2, '0')
-  return `#${R}${G}${B}`.toLowerCase()
-}
-const lighten = (hsl: HSL, amt = 0.1): HSL => ({
-  ...hsl,
-  l: clamp(hsl.l + amt),
-})
-const darken = (hsl: HSL, amt = 0.1): HSL => ({ ...hsl, l: clamp(hsl.l - amt) })
-const saturate = (hsl: HSL, amt = 0.1): HSL => ({
-  ...hsl,
-  s: clamp(hsl.s + amt),
-})
 
+function adjustBrightness(hex: string, factor: number): string {
+  const { r, g, b } = hexToRgb(hex)
+  return rgbToHex(r * factor, g * factor, b * factor)
+}
+
+function blendColors(hex1: string, hex2: string, ratio: number = 0.5): string {
+  const rgb1 = hexToRgb(hex1)
+  const rgb2 = hexToRgb(hex2)
+  return rgbToHex(
+    rgb1.r + (rgb2.r - rgb1.r) * ratio,
+    rgb1.g + (rgb2.g - rgb1.g) * ratio,
+    rgb1.b + (rgb2.b - rgb1.b) * ratio
+  )
+}
+
+// Generate neutral colors from a base color
 function deriveNeutralsFrom(baseHex: string) {
-  const b = hexToHsl(baseHex)
-  const desat: HSL = { h: b.h, s: clamp(b.s * 0.08), l: b.l }
-  const light = { ...desat, l: 0.96 }
-  const mid = { ...desat, l: 0.55 }
-  const dark = { ...desat, l: 0.14 }
+  const { r, g, b } = hexToRgb(baseHex)
+  // Create a desaturated version by blending with gray
+  const gray = Math.round((r + g + b) / 3)
+  const desatR = Math.round(r * 0.15 + gray * 0.85)
+  const desatG = Math.round(g * 0.15 + gray * 0.85)
+  const desatB = Math.round(b * 0.15 + gray * 0.85)
+
   return {
-    neutral_light: hslToHex(light),
-    neutral_mid: hslToHex(mid),
-    neutral_dark: hslToHex(dark),
+    neutral_light: rgbToHex(desatR + 50, desatG + 50, desatB + 50), // Lighter
+    neutral_mid: rgbToHex(desatR + 10, desatG + 10, desatB + 10), // Mid tone
+    neutral_dark: rgbToHex(desatR - 40, desatG - 40, desatB - 40), // Darker
   }
 }
 
+// Generate status colors from a base color
+function deriveStatusFrom(baseHex: string) {
+  const { r, g, b } = hexToRgb(baseHex)
+
+  return {
+    danger: rgbToHex(
+      Math.min(255, r + 50),
+      Math.max(0, g - 30),
+      Math.max(0, b - 30)
+    ), // More red
+    warning: rgbToHex(
+      Math.min(255, r + 30),
+      Math.min(255, g + 40),
+      Math.max(0, b - 40)
+    ), // Yellow/orange
+    caution: rgbToHex(
+      Math.min(255, r + 40),
+      Math.min(255, g + 20),
+      Math.max(0, b - 50)
+    ), // Orange
+    success: rgbToHex(
+      Math.max(0, r - 40),
+      Math.min(255, g + 50),
+      Math.max(0, b - 20)
+    ), // More green
+  }
+}
+
+// Simple palette generation using predefined color relationships
 function buildPalette(baseHex: string, scheme: Scheme) {
-  const base = hexToHsl(baseHex)
+  const { r, g, b } = hexToRgb(baseHex)
 
   if (scheme === 'Monochromatic') {
-    const primary = base
-    const secondary = {
-      h: base.h,
-      s: clamp(base.s * 0.65),
-      l: clamp(base.l * 1.15),
-    }
-    const tertiary = {
-      h: base.h,
-      s: clamp(base.s * 0.95),
-      l: clamp(base.l * 0.78),
-    }
     return {
-      primary: hslToHex(primary),
-      secondary: hslToHex(secondary),
-      tertiary: hslToHex(tertiary),
+      primary: baseHex,
+      secondary: adjustBrightness(baseHex, 1.2), // Lighter version
+      tertiary: adjustBrightness(baseHex, 0.8), // Darker version
     }
   }
 
   if (scheme === 'Analogous') {
-    const primary = base
-    const secondary = { ...base, h: rotateHue(base.h, -30) }
-    const tertiary = { ...base, h: rotateHue(base.h, +30) }
+    // Shift color channels slightly for analogous colors
     return {
-      primary: hslToHex(primary),
-      secondary: hslToHex(saturate(secondary, 0.05)),
-      tertiary: hslToHex(lighten(tertiary, 0.05)),
+      primary: baseHex,
+      secondary: rgbToHex(Math.min(255, r + 30), g, Math.max(0, b - 20)), // Shift toward red/yellow
+      tertiary: rgbToHex(Math.max(0, r - 20), Math.min(255, g + 30), b), // Shift toward green/blue
     }
   }
 
   if (scheme === 'Complementary') {
-    const primary = base
-    const secondary = { ...base, h: rotateHue(base.h, 180) }
-    const tertiary = { ...base, h: rotateHue(base.h, 160) }
     return {
-      primary: hslToHex(primary),
-      secondary: hslToHex(secondary),
-      tertiary: hslToHex(lighten(tertiary, 0.08)),
+      primary: baseHex,
+      secondary: rgbToHex(255 - r, 255 - g, 255 - b), // Invert colors for complement
+      tertiary: blendColors(baseHex, rgbToHex(255 - r, 255 - g, 255 - b), 0.3), // Blend
     }
   }
 
-  // Triadic
-  const primary = base
-  const secondary = { ...base, h: rotateHue(base.h, 120) }
-  const tertiary = { ...base, h: rotateHue(base.h, -120) }
+  // Triadic - rotate through RGB channels
   return {
-    primary: hslToHex(primary),
-    secondary: hslToHex(saturate(secondary, 0.04)),
-    tertiary: hslToHex(darken(tertiary, 0.04)),
+    primary: baseHex,
+    secondary: rgbToHex(b, r, g), // Rotate RGB channels
+    tertiary: rgbToHex(g, b, r), // Rotate RGB channels differently
   }
 }
 
@@ -178,6 +125,7 @@ export default function PaletteGenerator() {
   const [base, setBase] = useState<string>(theme.colors?.primary || '#2563eb')
   const [scheme, setScheme] = useState<Scheme>('Monochromatic')
   const [deriveNeutrals, setDeriveNeutrals] = useState<boolean>(false)
+  const [deriveStatus, setDeriveStatus] = useState<boolean>(false)
 
   const result = useMemo(() => buildPalette(base, scheme), [base, scheme])
 
@@ -198,6 +146,13 @@ export default function PaletteGenerator() {
         next.colors.neutral_mid = ns.neutral_mid
         next.colors.neutral_dark = ns.neutral_dark
       }
+      if (deriveStatus) {
+        const st = deriveStatusFrom(result.primary)
+        next.colors.danger = st.danger
+        next.colors.warning = st.warning
+        next.colors.caution = st.caution
+        next.colors.success = st.success
+      }
       return next
     })
   }
@@ -210,52 +165,33 @@ export default function PaletteGenerator() {
   }
 
   return (
-    <section className='card' style={{ flex: '1 1 420px' }}>
+    <section>
       <strong>Generate Palette</strong>
 
-      <div
-        style={{
-          display: 'grid',
-          gridTemplateColumns: '1fr 1fr',
-          gap: 10,
-          marginTop: 8,
-        }}
-      >
-        <label style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-          <span style={{ width: 120 }}>Base Color</span>
+      <div className={styles.controlsGrid}>
+        <label className={styles.controlRow}>
+          <span className={styles.controlLabel}>Base Color</span>
           <input
             type='color'
             value={base}
             onChange={(e) => setBase(e.target.value)}
-            style={{
-              width: 44,
-              height: 28,
-              padding: 0,
-              border: '1px solid #e5e7eb',
-              borderRadius: 6,
-            }}
+            className={styles.colorInput}
           />
           <input
             type='text'
             value={base}
             onChange={(e) => setBase(e.target.value)}
             placeholder='#RRGGBB'
-            style={{
-              flex: 1,
-              minWidth: 140,
-              padding: '8px 10px',
-              border: '1px solid #e5e7eb',
-              borderRadius: 6,
-            }}
+            className={styles.textInput}
           />
         </label>
 
-        <label style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-          <span style={{ width: 120 }}>Scheme</span>
+        <label className={styles.controlRow}>
+          <span className={styles.controlLabel}>Scheme</span>
           <select
             value={scheme}
             onChange={(e) => setScheme(e.target.value as Scheme)}
-            style={{ flex: 1 }}
+            className={styles.schemeSelect}
           >
             <option value='Monochromatic'>Monochromatic</option>
             <option value='Analogous'>Analogous</option>
@@ -265,71 +201,47 @@ export default function PaletteGenerator() {
         </label>
       </div>
 
-      {/* Derive neutrals toggle */}
-      <label
-        className='chip'
-        style={{
-          marginTop: 10,
-          display: 'inline-flex',
-          alignItems: 'center',
-          gap: 8,
-        }}
-      >
-        <input
-          type='checkbox'
-          checked={deriveNeutrals}
-          onChange={() => setDeriveNeutrals((v) => !v)}
-        />
-        Also derive Neutrals (Light/Dark)
-      </label>
+      {/* Derive options */}
+      <div className={styles.deriveOptions}>
+        <label className={`chip ${styles.deriveLabel}`}>
+          <input
+            type='checkbox'
+            checked={deriveNeutrals}
+            onChange={() => setDeriveNeutrals((v) => !v)}
+          />
+          Derive Neutrals (Light/Mid/Dark)
+        </label>
+
+        <label className={`chip ${styles.deriveLabel}`}>
+          <input
+            type='checkbox'
+            checked={deriveStatus}
+            onChange={() => setDeriveStatus((v) => !v)}
+          />
+          Derive Status (Danger/Warning/Caution/Success)
+        </label>
+      </div>
 
       {/* Preview swatches */}
-      <div
-        style={{
-          display: 'grid',
-          gridTemplateColumns: 'repeat(3, 1fr)',
-          gap: 10,
-          marginTop: 12,
-        }}
-      >
+      <div className={styles.previewGrid}>
         {(['primary', 'secondary', 'tertiary'] as const).map((k) => {
           const value = (result as any)[k]
           return (
-            <div
-              key={k}
-              style={{
-                border: '1px solid #e5e7eb',
-                borderRadius: 10,
-                overflow: 'hidden',
-              }}
-            >
-              <div style={{ background: value, height: 56 }} />
+            <div key={k} className={styles.swatchCard}>
               <div
-                style={{
-                  padding: 8,
-                  display: 'flex',
-                  justifyContent: 'space-between',
-                  alignItems: 'center',
-                }}
-              >
-                <span style={{ textTransform: 'capitalize' }}>{k}</span>
-                <code
-                  style={{
-                    padding: '2px 6px',
-                    borderRadius: 6,
-                    background: '#f3f4f6',
-                    color: '#111',
-                  }}
-                >
-                  {value}
-                </code>
+                className={styles.colorSwatch}
+                style={{ background: value }}
+              />
+              <div className={styles.swatchMeta}>
+                <span className={styles.swatchLabel}>{k}</span>
+                <code className={styles.swatchCode}>{value}</code>
               </div>
             </div>
           )
         })}
       </div>
 
-      <div style={{ display: 'flex', gap: 8, marginTop: 12, flexWrap: 'wrap' }}>
+      <div className={styles.actionButtons}>
         <button type='button' className='btn' onClick={applyToTheme}>
           Apply to Theme
         </button>
@@ -338,7 +250,7 @@ export default function PaletteGenerator() {
         </button>
       </div>
 
-      <small style={{ display: 'block', marginTop: 8, opacity: 0.7 }}>
+      <small className={styles.helperText}>
         All schemes can optionally derive Neutral (Light/Dark) from the Primary
         hue by desaturating &amp; adjusting lightness.
       </small>

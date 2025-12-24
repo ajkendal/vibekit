@@ -68,7 +68,7 @@
   // Mobile adjustments
   @media (max-width: 480px) {
     font-size: 11px;
-    min-width: 70px;
+    min-width: unset;
   }
 }
 
@@ -76,6 +76,9 @@
   display: flex;
   flex-direction: column;
   align-items: flex-start;
+  box-sizing: border-box;
+  justify-content: flex-start;
+  gap: 2px;
 }
 
 .colorName {
@@ -85,14 +88,16 @@
   line-height: 1.2;
   align-self: flex-end;
   font-style: italic;
-}
+  min-height: 12px;
+  display: block;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  max-width: 120px;
 
-.colorNameLoading {
-  font-size: 9px;
-  color: #999;
-  margin: 0;
-  align-self: flex-end;
-  font-style: italic;
+  &.loading {
+    color: #999;
+  }
 }
 
 // Hide Ant Design ColorPicker format selector

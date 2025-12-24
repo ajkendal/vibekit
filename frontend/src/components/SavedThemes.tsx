@@ -108,7 +108,7 @@ export default function SavedThemes({
   }
 
   return (
-    <section className='card' style={{ marginTop: 16 }}>
+    <section>
       <strong>Saved Themes</strong>
       {loading && <p style={{ marginTop: 8 }}>Loading…</p>}
       {err && <p style={{ marginTop: 8, color: 'crimson' }}>{err}</p>}

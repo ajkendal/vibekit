@@ -39,7 +39,7 @@ export default function BrandLogo({ value, apiBase, onChange }: Props) {
   }
 
   return (
-    <section className='card' style={{ marginTop: 16 }}>
+    <section>
       <strong>Brand Logo</strong>
       <div
         style={{

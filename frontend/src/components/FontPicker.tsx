@@ -57,7 +57,7 @@ export default function FontPicker({
   const radioName = `weight-${label.replace(/\s+/g, '-').toLowerCase()}`
 
   return (
-    <div className='card'>
+    <div>
       <strong>{label}</strong>
 
       {/* Family */}

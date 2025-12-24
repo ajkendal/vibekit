@@ -1,5 +1,3 @@
-import React from 'react'
-
 type Props = {
   name: string
   saving?: boolean
@@ -18,7 +16,7 @@ export default function ThemeHeader({
   onSaveUpdate,
 }: Props) {
   return (
-    <section className='card' style={{ marginBottom: 16 }}>
+    <section>
       <label htmlFor='themeName'>
         <strong>Theme Name</strong>
       </label>

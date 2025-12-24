@@ -1,125 +1,218 @@
-body {
-  font-family: system-ui, Inter, -apple-system, Segoe UI, Roboto, sans-serif;
-  margin: 0;
-}
+@import url('https://fonts.googleapis.com/css2?family=Konkhmer+Sleokchher&display=swap');
+
 .container {
-  max-width: 1100px;
-  margin: 2rem auto;
-  padding: 1rem;
-}
-.row {
-  display: flex;
-  gap: 8px;
-  flex-wrap: wrap;
-  margin: 0.5rem 0;
-}
-.card {
-  border: 1px solid #e5e7eb;
-  border-radius: 12px;
-  padding: 1rem;
-  background: #fff;
-}
-.btn {
-  padding: 0.5rem 0.75rem;
-  border: 1px solid #e5e7eb;
-  border-radius: 10px;
-  background: #f9fafb;
-  cursor: pointer;
-}
-.chip {
-  border: 1px solid #e5e7eb;
-  border-radius: 999px;
-  padding: 0.25rem 0.6rem;
-  user-select: none;
-}
-pre {
-  background: #0b0f14;
-  color: #e6edf3;
-  padding: 1rem;
-  border-radius: 12px;
-  overflow: auto;
+  min-height: 100vh;
 }
 
-/* === Inline Preview === */
-.vk-preview {
-  background: var(--color-surface);
-  color: var(--color-text);
-  border: 1px solid #e5e7eb;
-  border-radius: 12px;
-  padding: 1rem;
+// App Layout Styles
+.app-layout {
+  min-height: 100vh;
+
+  // Prevent layout transitions on mobile
+  @media (max-width: 1024px) {
+    .ant-layout {
+      transition: none !important;
+    }
+
+    .ant-layout-content {
+      transition: none !important;
+      margin-left: 0 !important;
+    }
+  }
 }
-.vk-header {
+
+.app-sider {
+  background-color: #fff;
+  border-right: 1px solid #f0f0f0;
+  overflow: auto;
+
+  // Responsive width for tablet and mobile
+  @media (max-width: 1024px) {
+    // Mobile sidebar positioning and animation
+    position: fixed !important;
+    top: 0 !important;
+    height: 100vh !important;
+    z-index: 1000 !important;
+    flex: 0 0 80% !important;
+    max-width: 80% !important;
+    min-width: 80% !important;
+    width: 80% !important;
+    box-shadow: 2px 0 8px rgba(0, 0, 0, 0.15);
+
+    // Smooth slide animation
+    transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1) !important;
+
+    &.ant-layout-sider-collapsed {
+      transform: translateX(-100%) !important;
+      left: 0 !important;
+    }
+
+    &:not(.ant-layout-sider-collapsed) {
+      transform: translateX(0) !important;
+      left: 0 !important;
+    }
+  }
+}
+
+.app-branding {
+  padding: 20px 16px;
+  border-bottom: 1px solid #f0f0f0;
   display: flex;
   align-items: center;
   gap: 12px;
-  margin-bottom: 0.5rem;
+  justify-content: space-between;
 }
-.vk-header img {
-  width: 28px;
-  height: 28px;
-  border-radius: 6px;
+
+.app-logo {
+  transition: all 0.2s;
+
+  &.collapsed {
+    width: 28px;
+    height: 28px;
+  }
+
+  &.expanded {
+    width: 40px;
+    height: 40px;
+  }
 }
-.vk-toolbar {
-  display: flex;
-  gap: 0.5rem;
-  align-items: center;
-  margin: 0.25rem 0 1rem;
-}
-.vk-chip {
-  border: 1px solid #e5e7eb;
-  border-radius: 999px;
-  padding: 0.25rem 0.6rem;
-  background: #fff;
-  cursor: pointer;
-}
-.vk-chip.active {
-  background: var(--color-primary);
-  border-color: transparent;
-  color: #fff;
-}
-.vk-typography {
-  display: grid;
-  gap: 12px;
-  margin: 0.5rem 0 1rem;
-}
-.vk-sample-header {
-  font-family: var(--font-header, var(--font-paragraph, system-ui));
+
+.app-title {
+  margin: 0;
+  font-size: 18px;
   font-weight: 600;
-  font-size: 1.5rem;
+  color: #262626;
+  line-height: 1.2;
+  font-family: 'Konkhmer Sleokchher', sans-serif;
 }
-.vk-sample-paragraph {
-  font-family: var(--font-paragraph, system-ui);
-  line-height: 1.6;
+
+.app-subtitle {
+  margin: 0;
+  font-size: 12px;
+  color: #8c8c8c;
+  line-height: 1.2;
+  font-family: 'Konkhmer Sleokchher', sans-serif;
 }
-.vk-alert.warning {
-  padding: 0.5rem 0.75rem;
-  border-radius: 10px;
-  background: var(--color-warning);
-  color: #111;
+
+.sider-content {
+  padding: 16px;
 }
-.vk-field {
-  display: grid;
-  gap: 0.5rem;
-  margin-top: 0.5rem;
+
+.app-header {
+  background-color: #fff;
+  border-bottom: 1px solid #f0f0f0;
+  padding: 0 16px;
+  display: flex;
+  align-items: center;
 }
-.vk-field input {
-  padding: 0.5rem 0.75rem;
-  border-radius: 10px;
-  border: 1px solid #e5e7eb;
-  background: #fff;
+
+.app-content {
+  padding: 16px;
+  background-color: #f5f5f5;
+  overflow: auto;
+
+  // Prevent layout shifts on mobile when sidebar toggles
+  @media (max-width: 1024px) {
+    transition: none !important;
+    margin-left: 0 !important;
+    width: 100% !important;
+  }
 }
-.vk-preview .btn.primary {
-  background: var(--color-primary);
-  color: #fff;
-  border-color: transparent;
+
+.content-container {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
 }
-.vk-preview .btn.secondary {
-  background: var(--color-secondary);
-  color: #fff;
-  border-color: transparent;
+
+// Mobile overlay when sidebar is open
+.sidebar-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-color: rgba(0, 0, 0, 0.5);
+  z-index: 999;
+  opacity: 0;
+  visibility: hidden;
+  transition: opacity 0.3s cubic-bezier(0.4, 0, 0.2, 1),
+    visibility 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+
+  @media (max-width: 1024px) {
+    &.visible {
+      opacity: 1;
+      visibility: visible;
+    }
+  }
 }
-.vk-preview .btn.danger {
-  background: var(--color-danger);
-  color: #fff;
-  border-color: transparent;
+
+// Mobile collapse button styles
+.mobile-collapse-btn {
+  display: none;
+
+  @media (max-width: 1024px) {
+    display: flex;
+  }
+}
+
+// Hide header collapse button on mobile only when sidebar is open
+@media (max-width: 1024px) {
+  .app-header .ant-btn.header-toggle {
+    &.hidden-when-open {
+      display: none;
+    }
+  }
+}
+
+// Sidebar Section Styles
+.sidebar-section {
+  margin-bottom: 16px;
+  border: 1px solid #f0f0f0;
+  border-radius: 6px;
+  overflow: hidden;
+}
+
+.section-header {
+  padding: 12px 16px;
+  background-color: #fafafa;
+  border-bottom: 1px solid #f0f0f0;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  transition: background-color 0.2s;
+
+  &:hover {
+    background-color: #f0f0f0;
+  }
+
+  .section-icon {
+    color: #0189af;
+    font-size: 16px;
+  }
+
+  .section-title {
+    flex: 1;
+    font-size: 14px;
+    font-weight: 500;
+    color: #262626;
+    margin: 0;
+    font-family: 'Konkhmer Sleokchher', sans-serif;
+  }
+
+  .section-toggle {
+    color: #8c8c8c;
+    font-size: 12px;
+    transition: transform 0.2s;
+
+    &.expanded {
+      transform: rotate(90deg);
+    }
+  }
+}
+
+.section-content {
+  padding: 16px;
+  background-color: #fff;
 }

@@ -17,7 +17,7 @@ export default function CssVarsPanel({ cssVars }: Props) {
   }
 
   return (
-    <section className='card' style={{ marginTop: 16 }}>
+    <section>
       <strong>CSS Variables (:root)</strong>
       <pre
         style={{
@@ -26,14 +26,12 @@ export default function CssVarsPanel({ cssVars }: Props) {
           background: '#222222',
           color: '#F0F0F0',
           borderRadius: 10,
-          overflow: 'auto',
-          maxHeight: 300,
           border: '1px solid #111827',
         }}
       >
         {cssVars}
       </pre>
-      <div style={{ display: 'flex', gap: 8, marginTop: 8 }}>
+      <div>
         <button className='btn' onClick={copy}>
           {isCopied ? 'Copied!' : 'Copy CSS'}
         </button>

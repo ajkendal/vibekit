@@ -59,22 +59,26 @@ export default function ColorControls() {
             value={hex}
             format='hex'
             disabledAlpha
+            size='small'
             showText={true}
             onChange={(color) =>
               updateColor(colorField.key, color.toHexString())
             }
           />
-          {colorName && <Text className={styles.colorName}>{colorName}</Text>}
-          {loading && !colorName && (
-            <Text className={styles.colorNameLoading}>Loading...</Text>
-          )}
+          <Text
+            className={`${styles.colorName} ${
+              loading && !colorName ? styles.loading : ''
+            }`}
+          >
+            {loading && !colorName ? 'Loading...' : colorName || '\u00A0'}
+          </Text>
         </div>
       </div>
     )
   }
 
   return (
-    <section className='card'>
+    <section>
       <strong className={styles.colorPalette}>Color Palette</strong>
 
       <div className={styles.gridContainer}>

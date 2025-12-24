@@ -1,5 +1,6 @@
 import { useMemo } from 'react'
 import { useTheme } from '../store/theme'
+import styles from '../styles/ContrastChecker.module.scss'
 
 type RGB = { r: number; g: number; b: number }
 
@@ -136,100 +137,58 @@ export default function ContrastChecker() {
   }, [light, mid, dark, primary, secondary, tertiary])
 
   return (
-    <section className='card' style={{ flex: '1 1 460px' }}>
+    <section>
       <strong>Contrast Checker</strong>
-      <p style={{ marginTop: 6, fontSize: 12, opacity: 0.75 }}>
+      <p className={styles.intro}>
         Quick readability checks for common color pairs. Aim for <b>Good</b> or{' '}
         <b>Excellent</b> for body text.
       </p>
 
-      <div style={{ marginTop: 8, display: 'grid', gap: 10 }}>
+      <div className={styles.container}>
         {rows.map((row) => (
           <div
             key={row.title}
-            style={{
-              border: '1px solid #e5e7eb',
-              borderRadius: 12,
-              overflow: 'hidden',
-              background: '#fff',
-            }}
+            className={styles.card}
+            style={
+              {
+                ['--bg' as any]: row.bg,
+                ['--fg' as any]: row.fg,
+                ['--verdict-bg' as any]: row.verdict.bg,
+                ['--verdict-fg' as any]: row.verdict.fg,
+                ['--verdict-border' as any]: row.verdict.border,
+              } as React.CSSProperties
+            }
           >
-            {/* Sample (swatch removed) */}
-            <div
-              style={{
-                background: row.bg,
-                color: row.fg,
-                padding: 16,
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'space-between',
-                gap: 12,
-              }}
-            >
+            <div className={styles.preview}>
               <div>
-                <div style={{ fontSize: 12, opacity: 0.75 }}>{row.title}</div>
-                <div
-                  style={{
-                    display: 'flex',
-                    gap: 8,
-                    alignItems: 'center',
-                    flexWrap: 'wrap',
-                  }}
-                >
-                  <span style={{ fontSize: 12, opacity: 0.7 }}>Background</span>
-                  <code>{row.bg}</code>
-                  <span style={{ fontSize: 12, opacity: 0.7, marginLeft: 8 }}>
-                    Text
-                  </span>
-                  <code>{row.fg}</code>
+                <div className={styles.title}>{row.title}</div>
+
+                <div className={styles.meta}>
+                  <div className={styles.metaRow}>
+                    <span>Background:&nbsp;</span>
+                    <code className={styles.code}>{row.bg}</code>
+                  </div>
+                  <div className={styles.metaRow}>
+                    <span>Text:&nbsp;</span>
+                    <code className={styles.code}>{row.fg}</code>
+                  </div>
                 </div>
               </div>
-              <div
-                style={{
-                  padding: '8px 12px',
-                  borderRadius: 8,
-                  background: row.bg,
-                  color: row.fg,
-                  border: '1px solid rgba(0,0,0,.08)',
-                  fontWeight: 700,
-                }}
-              >
-                This is easy to read
-              </div>
+
+              <div className={styles.sample}>This is easy to read</div>
             </div>
 
             {/* Verdict */}
-            <div
-              style={{
-                padding: 12,
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'space-between',
-                gap: 10,
-                flexWrap: 'wrap',
-              }}
-            >
-              <span
-                style={{
-                  display: 'inline-flex',
-                  alignItems: 'center',
-                  gap: 8,
-                  padding: '4px 10px',
-                  borderRadius: 999,
-                  background: row.verdict.bg,
-                  color: row.verdict.fg,
-                  border: `1px solid ${row.verdict.border}`,
-                  fontWeight: 600,
-                  fontSize: 12,
-                }}
-              >
+            <div className={styles.verdictRow}>
+              <span className={styles.verdictBadge}>
                 {row.verdict.label}
-                <span style={{ fontWeight: 400, opacity: 0.9 }}>
+                <span className={styles.verdictNote}>
+                  {' '}
                   · {row.verdict.note}
                 </span>
               </span>
 
-              <span style={{ fontSize: 12, opacity: 0.75 }}>
+              <span className={styles.details}>
                 Details: contrast {fmt(row.ratio)}
               </span>
             </div>
@@ -237,7 +196,7 @@ export default function ContrastChecker() {
         ))}
       </div>
 
-      <small style={{ display: 'block', marginTop: 8, opacity: 0.7 }}>
+      <small className={styles.tips}>
         Tips: Use <b>Good</b> or <b>Excellent</b> for body text.{' '}
         <b>OK for Large Text</b> is fine for big headlines. Avoid{' '}
         <b>Hard to Read</b>.

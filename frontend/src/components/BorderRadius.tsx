@@ -18,7 +18,7 @@ export default function BorderRadius() {
   }
 
   return (
-    <section className='card' style={{ marginTop: 16 }}>
+    <section>
       <strong>Border Radius</strong>
 
       <div style={{ marginTop: 12 }}>

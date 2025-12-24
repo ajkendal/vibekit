@@ -1,0 +1,99 @@
+// PaletteGenerator component styles
+
+.controlsGrid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+  margin-top: 8px;
+}
+
+.controlRow {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.controlLabel {
+  width: 120px;
+}
+
+.colorInput {
+  width: 44px;
+  height: 28px;
+  padding: 0;
+  border: 1px solid #e5e7eb;
+  border-radius: 6px;
+}
+
+.textInput {
+  flex: 1;
+  min-width: 140px;
+  padding: 8px 10px;
+  border: 1px solid #e5e7eb;
+  border-radius: 6px;
+}
+
+.schemeSelect {
+  flex: 1;
+}
+
+.deriveOptions {
+  margin-top: 10px;
+  display: flex;
+  gap: 16px;
+  flex-wrap: wrap;
+}
+
+.deriveLabel {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.previewGrid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 10px;
+  margin-top: 12px;
+}
+
+.swatchCard {
+  border: 1px solid #e5e7eb;
+  border-radius: 10px;
+  overflow: hidden;
+}
+
+.colorSwatch {
+  height: 56px;
+}
+
+.swatchMeta {
+  padding: 8px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.swatchLabel {
+  text-transform: capitalize;
+}
+
+.swatchCode {
+  padding: 2px 6px;
+  border-radius: 6px;
+  background: #f3f4f6;
+  color: #111;
+}
+
+.actionButtons {
+  display: flex;
+  gap: 8px;
+  margin-top: 12px;
+  flex-wrap: wrap;
+}
+
+.helperText {
+  display: block;
+  margin-top: 8px;
+  opacity: 0.7;
+}

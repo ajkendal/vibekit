@@ -122,7 +122,7 @@ export default function LivePreview({ apiBase }: Props) {
   }
 
   return (
-    <section className='card' style={{ flex: '1 1 420px' }}>
+    <section>
       <strong>Live Preview</strong>
       <div
         style={{
@@ -149,14 +149,18 @@ export default function LivePreview({ apiBase }: Props) {
               style={{ height: 28 }}
               onError={() => {
                 console.log('Image failed to load:', imgSrc)
-                // Image failed, show the fallback component instead
                 setImgSrc('')
               }}
             />
           ) : (
             fallback()
           )}
-          <span style={{ opacity: 0.7, fontSize: 12 }}>
+          <span
+            style={{
+              color: colors.neutral_mid || '#6b7280',
+              fontSize: 12,
+            }}
+          >
             {theme?.name || 'Untitled Theme'}
           </span>
         </div>
@@ -233,9 +237,9 @@ export default function LivePreview({ apiBase }: Props) {
             style={{
               padding: '8px 12px',
               borderRadius: `${borderRadius}px`,
-              border: '1px solid #e5e7eb',
+              border: `1px solid ${colors.neutral_mid || '#6b7280'}`,
               background: 'transparent',
-              color: fg,
+              color: colors.neutral_mid || '#6b7280',
               cursor: 'pointer',
             }}
           >

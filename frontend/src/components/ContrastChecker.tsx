@@ -83,24 +83,17 @@ export default function ContrastChecker() {
 
               <div className='vk-pair-status'>
                 {v === 'aaa' && (
-                  <>
-                    <span className='vk-pill vk-pill--pass'>✓ AAA pass</span>
-                    <span className='vk-pill vk-pill--pass'>✓ AA pass</span>
-                  </>
+                  <span className='vk-pill vk-pill--pass'>✓ AAA</span>
                 )}
                 {v === 'aa' && (
-                  <>
-                    <span className='vk-pill vk-pill--pass'>✓ AA pass</span>
-                    <span className='vk-pill vk-pill--fail'>AAA fails</span>
-                  </>
+                  <span className='vk-pill vk-pill--pass'>✓ AA</span>
                 )}
                 {v === 'aa-large' && (
-                  <>
-                    <span className='vk-pill vk-pill--warn'>AA large only</span>
-                    <span className='vk-pill vk-pill--fail'>AA fails</span>
-                  </>
+                  <span className='vk-pill vk-pill--warn'>Large only</span>
                 )}
-                {v === 'fail' && <span className='vk-pill vk-pill--fail'>Fails — try another pair</span>}
+                {v === 'fail' && (
+                  <span className='vk-pill vk-pill--fail'>Fail</span>
+                )}
                 <span className='vk-ratio'>{ratio.toFixed(2)}</span>
               </div>
             </div>

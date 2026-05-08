@@ -2,7 +2,7 @@ import { useMemo } from 'react'
 import { useGoogleFontsCatalog } from '../hooks/useGoogleFontsCatalog'
 
 type Props = {
-  label: string
+  label?: string
   family: string
   weight: number
   italic: boolean
@@ -21,8 +21,11 @@ type Props = {
 
 const ALL_WEIGHTS = [100, 200, 300, 400, 500, 600, 700, 800, 900]
 
+function ensure400(ws: number[]) {
+  return ws.includes(400) ? ws : [...ws, 400].sort((a, b) => a - b)
+}
+
 export default function FontPicker({
-  label,
   family,
   weight,
   italic,
@@ -32,7 +35,6 @@ export default function FontPicker({
 }: Props) {
   const { fonts, map } = useGoogleFontsCatalog()
 
-  // Alphabetical family list
   const families = useMemo(
     () =>
       fonts.length
@@ -41,7 +43,6 @@ export default function FontPicker({
     [fonts]
   )
 
-  // Supported weights for selected family (ensure 400)
   const supportedWeights = useMemo(() => {
     const f = map.get(family)
     if (!f) return ensure400(ALL_WEIGHTS)
@@ -54,18 +55,37 @@ export default function FontPicker({
     return ensure400(arr.length ? arr : ALL_WEIGHTS)
   }, [family, map])
 
-  const radioName = `weight-${label.replace(/\s+/g, '-').toLowerCase()}`
+  // Live preview style. Note: line-height is intentionally NOT applied here —
+  // the preview is single-line so line-height would only change the line-box
+  // height (causing layout shift) without showing a visible spacing effect.
+  // The number is shown in the meta caption, and the actual line-height
+  // behavior is visible in the canvas Live Preview where text wraps.
+  const previewStyle: React.CSSProperties = {
+    fontFamily: `'${family}', system-ui, -apple-system, sans-serif`,
+    fontWeight: weight,
+    fontStyle: italic ? 'italic' : 'normal',
+    letterSpacing: `${letterSpacing}em`,
+  }
 
   return (
-    <div>
-      <strong>{label}</strong>
+    <>
+      {/* Live preview */}
+      <div className='vk-fp-preview' style={previewStyle}>
+        The quick brown fox
+        <span className='vk-fp-preview-meta'>
+          {family} · {weight}
+          {italic ? ' italic' : ''} · {lineHeight.toFixed(2)} lh
+          {letterSpacing !== 0 ? ` · ${letterSpacing.toFixed(2)}em ls` : ''}
+        </span>
+      </div>
 
       {/* Family */}
-      <div className='row' style={{ gap: 8, marginTop: 8 }}>
+      <div className='vk-fp-field'>
+        <span className='vk-fp-field-label'>Family</span>
         <select
+          className='vk-fp-select'
           value={family}
           onChange={(e) => onChange({ family: e.target.value })}
-          style={{ flex: 1 }}
         >
           {families.map((f) => (
             <option key={f} value={f}>
@@ -75,115 +95,79 @@ export default function FontPicker({
         </select>
       </div>
 
-      {/* Single weight (radio chips) */}
-      <div className='row' style={{ gap: 6, flexWrap: 'wrap', marginTop: 8 }}>
-        {supportedWeights.map((w) => {
-          const active = w === weight
-          return (
-            <label
+      {/* Weight */}
+      <div className='vk-fp-field'>
+        <span className='vk-fp-field-label'>Weight</span>
+        <div className='vk-fp-weights'>
+          {supportedWeights.map((w) => (
+            <button
               key={w}
-              className='chip'
-              style={{
-                background: active ? '#2563eb' : '#fff',
-                color: active ? '#fff' : '#111',
-                cursor: 'pointer',
-              }}
+              type='button'
+              className={`vk-fp-weight ${w === weight ? 'is-active' : ''}`}
+              onClick={() => onChange({ weight: w })}
               title={`Weight ${w}`}
             >
-              <input
-                type='radio'
-                name={radioName}
-                checked={active}
-                onChange={() => onChange({ weight: w })}
-                style={{ display: 'none' }}
-              />
               {w}
-            </label>
-          )
-        })}
+            </button>
+          ))}
+        </div>
       </div>
 
       {/* Italic */}
-      <div
-        className='row'
-        style={{ gap: 8, marginTop: 8, alignItems: 'center' }}
-      >
-        <label
-          className='chip'
-          style={{ display: 'flex', alignItems: 'center', gap: 6 }}
-        >
+      <div className='vk-fp-field'>
+        <label className={`vk-toggle ${italic ? 'is-on' : ''}`}>
           <input
             type='checkbox'
             checked={italic}
             onChange={() => onChange({ italic: !italic })}
           />
-          Italic
+          <span className='vk-toggle-track'>
+            <span className='vk-toggle-thumb' />
+          </span>
+          <span className='vk-toggle-text'>
+            <span className='vk-toggle-label'>Italic</span>
+            <span className='vk-toggle-sub'>Slanted style for emphasis</span>
+          </span>
         </label>
-        <small>
-          Selected: {weight}
-          {italic ? ' italic' : ''}
-        </small>
       </div>
 
-      {/* Line height & Letter spacing */}
-      <div
-        className='row'
-        style={{
-          display: 'grid',
-          gridTemplateColumns: '1fr',
-          gap: 10,
-          marginTop: 8,
-        }}
-      >
-        <label
-          style={{
-            display: 'grid',
-            gridTemplateColumns: '120px 1fr 64px',
-            alignItems: 'center',
-            gap: 8,
-          }}
-        >
-          <span>Line Height</span>
-          <input
-            type='range'
-            min={1.0}
-            max={2.2}
-            step={0.05}
-            value={lineHeight}
-            onChange={(e) =>
-              onChange({ lineHeight: parseFloat(e.target.value) })
-            }
-          />
-          <code style={{ textAlign: 'right' }}>{lineHeight.toFixed(2)}</code>
-        </label>
-        <label
-          style={{
-            display: 'grid',
-            gridTemplateColumns: '120px 1fr 64px',
-            alignItems: 'center',
-            gap: 8,
-          }}
-        >
-          <span>Letter Spacing</span>
-          <input
-            type='range'
-            min={-0.05}
-            max={0.2}
-            step={0.01}
-            value={letterSpacing}
-            onChange={(e) =>
-              onChange({ letterSpacing: parseFloat(e.target.value) })
-            }
-          />
-          <code style={{ textAlign: 'right' }}>
+      {/* Line height */}
+      <div className='vk-fp-field'>
+        <div className='vk-fp-slider-head'>
+          <span className='vk-fp-field-label'>Line height</span>
+          <code className='vk-fp-slider-value'>{lineHeight.toFixed(2)}</code>
+        </div>
+        <input
+          type='range'
+          className='vk-fp-slider'
+          min={1.0}
+          max={2.2}
+          step={0.05}
+          value={lineHeight}
+          onChange={(e) => onChange({ lineHeight: parseFloat(e.target.value) })}
+        />
+      </div>
+
+      {/* Letter spacing */}
+      <div className='vk-fp-field'>
+        <div className='vk-fp-slider-head'>
+          <span className='vk-fp-field-label'>Letter spacing</span>
+          <code className='vk-fp-slider-value'>
             {letterSpacing.toFixed(2)}em
           </code>
-        </label>
+        </div>
+        <input
+          type='range'
+          className='vk-fp-slider'
+          min={-0.05}
+          max={0.2}
+          step={0.01}
+          value={letterSpacing}
+          onChange={(e) =>
+            onChange({ letterSpacing: parseFloat(e.target.value) })
+          }
+        />
       </div>
-    </div>
+    </>
   )
-}
-
-function ensure400(ws: number[]) {
-  return ws.includes(400) ? ws : [...ws, 400].sort((a, b) => a - b)
 }

@@ -307,33 +307,41 @@ body {
 /* ───────────────────────────────────────────────────────── */
 .vk-pair-grid {
   display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 12px;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 8px;
 
-  @media (max-width: 720px) {
+  @media (min-width: 960px) {
+    grid-template-columns: repeat(3, 1fr);
+  }
+
+  @media (min-width: 1280px) {
+    grid-template-columns: repeat(4, 1fr);
+  }
+
+  @media (max-width: 480px) {
     grid-template-columns: 1fr;
   }
 }
 
 .vk-pair-card {
   background: var(--vk-surface-muted);
-  border-radius: var(--vk-radius);
-  padding: 14px;
+  border-radius: 10px;
+  padding: 10px;
 }
 
 .vk-pair-head {
   display: flex;
   align-items: center;
-  gap: 8px;
-  margin-bottom: 10px;
+  gap: 6px;
+  margin-bottom: 8px;
 }
 
 .vk-pair-swatch {
   display: flex;
-  border-radius: 6px;
+  border-radius: 4px;
   overflow: hidden;
-  width: 56px;
-  height: 28px;
+  width: 36px;
+  height: 18px;
   border: 0.5px solid rgba(26, 26, 26, 0.08);
   flex-shrink: 0;
 }
@@ -343,23 +351,26 @@ body {
 }
 
 .vk-pair-title {
-  font-size: 12px;
+  font-size: 11px;
   font-weight: 600;
   color: var(--vk-ink);
   letter-spacing: -0.01em;
   flex: 1;
   font-family: var(--vk-font-sans);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 .vk-pair-sample {
-  padding: 14px;
-  border-radius: 10px;
-  margin-bottom: 10px;
+  padding: 8px 10px;
+  border-radius: 7px;
+  margin-bottom: 8px;
   border: 0.5px solid rgba(26, 26, 26, 0.04);
 }
 
 .vk-pair-sample-h {
-  font-size: 18px;
+  font-size: 13px;
   font-weight: 700;
   letter-spacing: -0.02em;
   line-height: 1.2;
@@ -367,26 +378,28 @@ body {
 }
 
 .vk-pair-sample-p {
-  font-size: 11px;
-  margin: 2px 0 0;
+  font-size: 10px;
+  margin: 1px 0 0;
   opacity: 0.85;
+  line-height: 1.3;
 }
 
 .vk-pair-status {
   display: flex;
   align-items: center;
-  gap: 6px;
+  gap: 4px;
   flex-wrap: wrap;
 }
 
 .vk-pill {
-  padding: 3px 10px;
-  border-radius: 14px;
-  font-size: 11px;
+  padding: 2px 7px;
+  border-radius: 12px;
+  font-size: 10px;
   font-weight: 600;
   letter-spacing: -0.005em;
   border: 0;
   font-family: var(--vk-font-sans);
+  line-height: 1.4;
 
   &--pass {
     background: rgba(255, 190, 11, 0.22);
@@ -409,7 +422,7 @@ body {
 .vk-ratio {
   margin-left: auto;
   font-family: var(--vk-font-mono);
-  font-size: 12px;
+  font-size: 11px;
   font-weight: 600;
   color: var(--vk-ink);
 }
@@ -671,4 +684,548 @@ body {
   color: var(--vk-violet);
   font-size: 14px;
   display: inline-flex;
+}
+
+/* ───────────────────────────────────────────────────────── */
+/* Color tokens panel                                        */
+/* ───────────────────────────────────────────────────────── */
+.vk-token-group {
+  margin-bottom: 12px;
+
+  &:last-child {
+    margin-bottom: 0;
+  }
+}
+
+.vk-token-group-label {
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: rgba(26, 26, 26, 0.45);
+  margin: 0 0 4px;
+  padding: 0 6px;
+  font-family: var(--vk-font-sans);
+}
+
+.vk-color-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 4px 6px;
+  border-radius: 6px;
+  background: transparent;
+  border: 0;
+  cursor: pointer;
+  width: 100%;
+  font-family: var(--vk-font-sans);
+  text-align: left;
+  transition: background 0.15s ease;
+  margin-bottom: 1px;
+
+  &:hover {
+    background: var(--vk-surface-muted);
+  }
+
+  &:focus-visible {
+    outline: 2px solid var(--vk-azure);
+    outline-offset: 2px;
+  }
+}
+
+.vk-color-swatch {
+  width: 22px;
+  height: 22px;
+  border-radius: 5px;
+  flex-shrink: 0;
+  border: 0.5px solid rgba(26, 26, 26, 0.1);
+  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.25);
+}
+
+.vk-color-meta {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  align-items: baseline;
+  gap: 6px;
+}
+
+.vk-color-token-name {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--vk-ink);
+  letter-spacing: -0.01em;
+  line-height: 1.2;
+  flex-shrink: 0;
+}
+
+.vk-color-name-secondary {
+  font-size: 10px;
+  color: rgba(26, 26, 26, 0.45);
+  line-height: 1.2;
+  font-style: italic;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  min-width: 0;
+
+  &.is-loading {
+    color: rgba(26, 26, 26, 0.3);
+    font-style: normal;
+  }
+}
+
+.vk-color-hex {
+  font-family: var(--vk-font-mono);
+  font-size: 10px;
+  font-weight: 500;
+  color: rgba(26, 26, 26, 0.5);
+  flex-shrink: 0;
+}
+
+/* Hide Ant ColorPicker's preset chrome (we provide our own UI) */
+.vk-color-row :global(.ant-color-picker-format-select),
+.vk-color-row :global(.ant-color-picker-presets) {
+  display: none !important;
+}
+
+/* ───────────────────────────────────────────────────────── */
+/* Palette generator                                         */
+/* ───────────────────────────────────────────────────────── */
+.vk-pg-field {
+  margin-bottom: 16px;
+
+  &:last-of-type {
+    margin-bottom: 0;
+  }
+}
+
+.vk-pg-field-label {
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: rgba(26, 26, 26, 0.45);
+  margin: 0 0 8px;
+  display: block;
+  font-family: var(--vk-font-sans);
+}
+
+.vk-pg-base {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.vk-pg-base-swatch {
+  position: relative;
+  width: 36px;
+  height: 36px;
+  border-radius: 8px;
+  border: 0.5px solid rgba(26, 26, 26, 0.1);
+  cursor: pointer;
+  flex-shrink: 0;
+  overflow: hidden;
+  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.25);
+
+  input[type='color'] {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    opacity: 0;
+    cursor: pointer;
+    border: 0;
+    padding: 0;
+  }
+}
+
+.vk-pg-base-input {
+  flex: 1;
+  font-family: var(--vk-font-mono);
+  font-size: 13px;
+  color: var(--vk-ink);
+  padding: 8px 10px;
+  border-radius: 8px;
+  border: 0.5px solid rgba(26, 26, 26, 0.12);
+  background: var(--vk-surface);
+  outline: 0;
+  transition: border-color 0.15s ease, box-shadow 0.15s ease;
+  min-width: 0;
+
+  &:focus {
+    border-color: var(--vk-azure);
+    box-shadow: 0 0 0 2px rgba(58, 134, 255, 0.2);
+  }
+}
+
+.vk-pg-scheme {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 4px;
+}
+
+.vk-pg-scheme-pill {
+  appearance: none;
+  border: 0.5px solid rgba(26, 26, 26, 0.12);
+  background: var(--vk-surface);
+  cursor: pointer;
+  font-family: var(--vk-font-sans);
+  font-size: 12px;
+  font-weight: 500;
+  color: rgba(26, 26, 26, 0.7);
+  padding: 7px 10px;
+  border-radius: 7px;
+  letter-spacing: -0.01em;
+  transition: background 0.15s ease, border-color 0.15s ease,
+    color 0.15s ease;
+
+  &:hover {
+    border-color: rgba(26, 26, 26, 0.2);
+    color: var(--vk-ink);
+  }
+
+  &.is-active {
+    background: var(--vk-ink);
+    color: var(--vk-canvas);
+    border-color: var(--vk-ink);
+    font-weight: 600;
+  }
+}
+
+.vk-pg-derive {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.vk-pg-toggle {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 9px 10px;
+  border-radius: 8px;
+  background: var(--vk-surface-muted);
+  cursor: pointer;
+  font-family: var(--vk-font-sans);
+  transition: background 0.15s ease;
+  user-select: none;
+
+  &:hover {
+    background: rgba(26, 26, 26, 0.06);
+  }
+
+  input {
+    display: none;
+  }
+}
+
+.vk-pg-toggle-track {
+  width: 28px;
+  height: 16px;
+  background: rgba(26, 26, 26, 0.18);
+  border-radius: 10px;
+  position: relative;
+  flex-shrink: 0;
+  transition: background 0.15s ease;
+}
+
+.vk-pg-toggle-thumb {
+  width: 12px;
+  height: 12px;
+  background: #ffffff;
+  border-radius: 50%;
+  position: absolute;
+  top: 2px;
+  left: 2px;
+  transition: transform 0.15s ease;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.15);
+}
+
+.vk-pg-toggle.is-on .vk-pg-toggle-track {
+  background: var(--vk-violet);
+}
+
+.vk-pg-toggle.is-on .vk-pg-toggle-thumb {
+  transform: translateX(12px);
+}
+
+.vk-pg-toggle-text {
+  flex: 1;
+  min-width: 0;
+}
+
+.vk-pg-toggle-label {
+  display: block;
+  font-size: 12px;
+  color: var(--vk-ink);
+  font-weight: 600;
+  letter-spacing: -0.01em;
+  line-height: 1.2;
+}
+
+.vk-pg-toggle-sub {
+  display: block;
+  font-size: 11px;
+  color: rgba(26, 26, 26, 0.5);
+  margin-top: 2px;
+  font-weight: 400;
+  line-height: 1.3;
+}
+
+.vk-pg-preview {
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr;
+  gap: 6px;
+}
+
+.vk-pg-preview-card {
+  background: var(--vk-surface);
+  border: 0.5px solid rgba(26, 26, 26, 0.06);
+  border-radius: 10px;
+  overflow: hidden;
+}
+
+.vk-pg-preview-swatch {
+  height: 48px;
+}
+
+.vk-pg-preview-meta {
+  padding: 6px 8px;
+}
+
+.vk-pg-preview-name {
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--vk-ink);
+  letter-spacing: -0.01em;
+  text-transform: capitalize;
+  font-family: var(--vk-font-sans);
+  line-height: 1.2;
+}
+
+.vk-pg-preview-hex {
+  font-family: var(--vk-font-mono);
+  font-size: 10px;
+  color: rgba(26, 26, 26, 0.55);
+  margin-top: 1px;
+}
+
+.vk-pg-actions {
+  display: flex;
+  gap: 8px;
+  margin-top: 4px;
+}
+
+.vk-pg-helper {
+  display: block;
+  margin-top: 12px;
+  font-size: 11px;
+  color: rgba(26, 26, 26, 0.5);
+  line-height: 1.5;
+  font-family: var(--vk-font-sans);
+}
+
+/* ───────────────────────────────────────────────────────── */
+/* Generic toggle switch — used in FontPicker, PaletteGen    */
+/* ───────────────────────────────────────────────────────── */
+.vk-toggle,
+.vk-pg-toggle {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 9px 10px;
+  border-radius: 8px;
+  background: var(--vk-surface-muted);
+  cursor: pointer;
+  font-family: var(--vk-font-sans);
+  transition: background 0.15s ease;
+  user-select: none;
+
+  &:hover {
+    background: rgba(26, 26, 26, 0.06);
+  }
+
+  input {
+    display: none;
+  }
+}
+
+.vk-toggle-track {
+  width: 28px;
+  height: 16px;
+  background: rgba(26, 26, 26, 0.18);
+  border-radius: 10px;
+  position: relative;
+  flex-shrink: 0;
+  transition: background 0.15s ease;
+}
+
+.vk-toggle-thumb {
+  width: 12px;
+  height: 12px;
+  background: #ffffff;
+  border-radius: 50%;
+  position: absolute;
+  top: 2px;
+  left: 2px;
+  transition: transform 0.15s ease;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.15);
+}
+
+.vk-toggle.is-on .vk-toggle-track {
+  background: var(--vk-violet);
+}
+
+.vk-toggle.is-on .vk-toggle-thumb {
+  transform: translateX(12px);
+}
+
+.vk-toggle-text {
+  flex: 1;
+  min-width: 0;
+}
+
+.vk-toggle-label {
+  display: block;
+  font-size: 12px;
+  color: var(--vk-ink);
+  font-weight: 600;
+  letter-spacing: -0.01em;
+  line-height: 1.2;
+}
+
+.vk-toggle-sub {
+  display: block;
+  font-size: 11px;
+  color: rgba(26, 26, 26, 0.5);
+  margin-top: 2px;
+  font-weight: 400;
+  line-height: 1.3;
+}
+
+/* ───────────────────────────────────────────────────────── */
+/* Typography panel (FontPicker)                             */
+/* ───────────────────────────────────────────────────────── */
+.vk-fp-field {
+  margin-bottom: 12px;
+
+  &:last-of-type {
+    margin-bottom: 0;
+  }
+}
+
+.vk-fp-field-label {
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: rgba(26, 26, 26, 0.45);
+  margin: 0 0 6px;
+  display: block;
+  font-family: var(--vk-font-sans);
+}
+
+.vk-fp-preview {
+  background: var(--vk-surface-muted);
+  border-radius: 8px;
+  padding: 14px 16px;
+  margin-bottom: 14px;
+  color: var(--vk-ink);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-size: 20px;
+  line-height: 1.2;
+}
+
+.vk-fp-preview-meta {
+  display: block;
+  margin-top: 4px;
+  font-family: var(--vk-font-mono);
+  font-size: 10px;
+  font-weight: 400;
+  color: rgba(26, 26, 26, 0.45);
+  font-style: normal;
+  letter-spacing: 0;
+}
+
+.vk-fp-select {
+  width: 100%;
+  appearance: none;
+  -webkit-appearance: none;
+  background-color: var(--vk-surface);
+  border: 0.5px solid rgba(26, 26, 26, 0.12);
+  border-radius: 8px;
+  padding: 8px 28px 8px 10px;
+  font-family: var(--vk-font-sans);
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--vk-ink);
+  cursor: pointer;
+  background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'><path d='M3 4.5l3 3 3-3' fill='none' stroke='%231a1a1a' stroke-width='1.5' stroke-linecap='round' stroke-linejoin='round'/></svg>");
+  background-repeat: no-repeat;
+  background-position: right 10px center;
+  background-size: 12px;
+  outline: 0;
+  transition: border-color 0.15s ease, box-shadow 0.15s ease;
+
+  &:focus {
+    border-color: var(--vk-azure);
+    box-shadow: 0 0 0 2px rgba(58, 134, 255, 0.2);
+  }
+}
+
+.vk-fp-weights {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+}
+
+.vk-fp-weight {
+  appearance: none;
+  border: 0.5px solid rgba(26, 26, 26, 0.12);
+  background: var(--vk-surface);
+  cursor: pointer;
+  font-family: var(--vk-font-mono);
+  font-size: 11px;
+  font-weight: 500;
+  color: rgba(26, 26, 26, 0.7);
+  padding: 4px 8px;
+  min-width: 36px;
+  border-radius: 6px;
+  transition: background 0.15s ease, border-color 0.15s ease, color 0.15s ease;
+
+  &:hover {
+    color: var(--vk-ink);
+    border-color: rgba(26, 26, 26, 0.2);
+  }
+
+  &.is-active {
+    background: var(--vk-ink);
+    color: var(--vk-canvas);
+    border-color: var(--vk-ink);
+    font-weight: 600;
+  }
+}
+
+.vk-fp-slider-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  margin-bottom: 4px;
+}
+
+.vk-fp-slider-value {
+  font-family: var(--vk-font-mono);
+  font-size: 11px;
+  font-weight: 500;
+  color: var(--vk-ink);
+}
+
+.vk-fp-slider {
+  width: 100%;
+  accent-color: var(--vk-violet);
+  margin: 4px 0 2px;
+  cursor: pointer;
 }

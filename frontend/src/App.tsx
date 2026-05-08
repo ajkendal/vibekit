@@ -6,32 +6,32 @@ import FontPicker from './components/FontPicker'
 import SavedThemes from './components/SavedThemes'
 import BrandLogo from './components/BrandLogo'
 import CssVarsPanel from './components/CssVarsPanel'
-import ThemeHeader from './components/ThemeHeader'
 import ContrastChecker from './components/ContrastChecker'
 import BorderRadius from './components/BorderRadius'
 import { useTheme } from './store/theme'
 import {
-  MenuFoldOutlined,
-  MenuUnfoldOutlined,
-  FileTextOutlined,
-  FontSizeOutlined,
   BgColorsOutlined,
+  FontSizeOutlined,
   RadiusUprightOutlined,
   FileImageOutlined,
   SaveOutlined,
-  DownOutlined,
-  RightOutlined,
 } from '@ant-design/icons'
-import { Button, Layout, Collapse } from 'antd'
 
 type ThemeRow = { id: string; name?: string; [k: string]: any }
-const { Header, Sider, Content } = Layout
+
+type Category = 'colors' | 'type' | 'spacing' | 'brand' | 'themes'
+
+const CATEGORIES: { key: Category; label: string }[] = [
+  { key: 'colors', label: 'Colors' },
+  { key: 'type', label: 'Typography' },
+  { key: 'spacing', label: 'Spacing' },
+  { key: 'brand', label: 'Brand' },
+  { key: 'themes', label: 'Themes' },
+]
 
 const DEFAULT_API_BASE = (() => {
   const h = location.hostname
-  // Always use Vite proxy in development to avoid CORS and port issues
   if (h === 'localhost' || h === '127.0.0.1' || h === '0.0.0.0') return '/api'
-  // Production - use the Worker URL
   return 'https://vibekit-api.ajkendal-openai.workers.dev'
 })()
 
@@ -74,7 +74,6 @@ export function themeToCssVars(theme: any) {
   const push = (k: string, v?: string | number) =>
     v != null && lines.push(`${k}: ${v};`)
 
-  // ✅ Always include all keys (with defaults if missing)
   const DEFAULTS: Record<string, string> = {
     neutral_light: '#ffffff',
     neutral_mid: '#6b7280',
@@ -115,14 +114,12 @@ export function themeToCssVars(theme: any) {
   if (typeof t.paragraphLetterSpacing === 'number')
     push('--letter-spacing-paragraph', `${t.paragraphLetterSpacing}em`)
 
-  // Border radius from spacing
   const s = theme?.spacing || {}
   if (typeof s.borderRadius === 'number')
     push('--border-radius', `${s.borderRadius}px`)
 
   return `:root{\n  ${lines.join('\n  ')}\n}`
 }
-/* ───────────────────────────────────────────────────────── */
 
 function newId() {
   // @ts-ignore
@@ -134,37 +131,12 @@ function newId() {
 
 export default function App() {
   const { theme, setTheme } = useTheme()
-  const [collapsed, setCollapsed] = useState(false)
 
+  const [activeCategory, setActiveCategory] = useState<Category>('colors')
   const [apiBase, setApiBase] = useState<string>(DEFAULT_API_BASE)
   const [themes, setThemes] = useState<ThemeRow[]>([])
   const [loading, setLoading] = useState(true)
   const [err, setErr] = useState<string | null>(null)
-
-  // Sidebar section expansion state
-  const [expandedSections, setExpandedSections] = useState<string[]>([
-    'theme-name',
-    'typography',
-    'colors',
-    'brand-logo',
-    'border-radius',
-    'saved-themes',
-  ])
-
-  const toggleSection = (sectionKey: string) => {
-    if (collapsed) {
-      // If sidebar is collapsed, open it and show only the clicked section
-      setCollapsed(false)
-      setExpandedSections([sectionKey])
-    } else {
-      // Normal toggle behavior when sidebar is open
-      setExpandedSections((prev) =>
-        prev.includes(sectionKey)
-          ? prev.filter((key) => key !== sectionKey)
-          : [...prev, sectionKey]
-      )
-    }
-  }
 
   const [themeName, setThemeName] = useState<string>(theme.name || '')
   useEffect(() => {
@@ -199,7 +171,7 @@ export default function App() {
     fetchThemes()
   }, [])
 
-  // Typography state reads
+  // Typography reads (used for Google Fonts loading + save payload)
   const headerFamily = theme.typography?.headerFont || 'Inter'
   const headerWeight =
     (theme.typography?.headerWeights?.[0] as number | undefined) ?? 400
@@ -218,7 +190,7 @@ export default function App() {
   const paragraphLS =
     (theme.typography?.paragraphLetterSpacing as number | undefined) ?? 0
 
-  // Google Fonts
+  // Google Fonts dynamic loader
   useEffect(() => {
     const h = gfParam(headerFamily, [headerWeight], headerItalic)
     const p =
@@ -247,7 +219,7 @@ export default function App() {
     paragraphItalic,
   ])
 
-  // Italic preview (global)
+  // Italic preview style injection (for h1/h2/h3 + p)
   useEffect(() => {
     let style = document.getElementById(
       'vk-italic-style'
@@ -380,316 +352,243 @@ export default function App() {
     ]
   )
 
+  const hasCurrent = !!theme.id
+
   return (
-    <>
-      {/* Mobile overlay */}
-      <div
-        className={`sidebar-overlay ${!collapsed ? 'visible' : ''}`}
-        onClick={() => setCollapsed(true)}
-      />
+    <div className='vk-app'>
+      {/* ───────── TOP BAR ───────── */}
+      <header className='vk-topbar'>
+        <div className='vk-topbar-brand'>
+          <img
+            src='/brand/VibeKit_Mark.svg'
+            alt='VibeKit'
+            className='vk-topbar-mark'
+          />
+          <h1 className='vk-topbar-wordmark'>VibeKit</h1>
+          <div className='vk-topbar-divider' />
+          <input
+            className='vk-topbar-name'
+            type='text'
+            value={themeName}
+            placeholder='Untitled theme'
+            onChange={(e) => {
+              const v = e.target.value
+              setThemeName(v)
+              setTheme((prev: any) => ({ ...prev, name: v }))
+            }}
+          />
+        </div>
+        <div className='vk-topbar-actions'>
+          {hasCurrent && (
+            <button
+              className='vk-btn vk-btn--outline vk-btn--sm'
+              onClick={() => saveTheme(true)}
+              disabled={saving}
+            >
+              Save as new
+            </button>
+          )}
+          <button
+            className='vk-btn vk-btn--primary vk-btn--sm'
+            onClick={() => saveTheme(hasCurrent ? false : true)}
+            disabled={saving}
+          >
+            {saving ? 'Saving…' : hasCurrent ? 'Save' : 'Save theme'}
+          </button>
+        </div>
+      </header>
 
-      <Layout className='app-layout'>
-        <Sider
-          trigger={null}
-          collapsible
-          collapsed={collapsed}
-          width={700}
-          className='app-sider'
-        >
-          {/* App Branding Header */}
-          <div className='app-branding'>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-              <img
-                src='/brand/VibeKit_Mark.svg'
-                alt='VibeKit'
-                className={`app-logo ${collapsed ? 'collapsed' : 'expanded'}`}
+      {/* ───────── CATEGORY TABS ───────── */}
+      <nav className='vk-categorybar'>
+        {CATEGORIES.map((c) => (
+          <button
+            key={c.key}
+            className={`vk-category ${
+              activeCategory === c.key ? 'vk-category--active' : ''
+            }`}
+            onClick={() => setActiveCategory(c.key)}
+          >
+            {c.label}
+          </button>
+        ))}
+      </nav>
+
+      {/* ───────── WORKSPACE: canvas + controls ───────── */}
+      <main className='vk-workspace'>
+        {/* LEFT: canvas (preview / contrast / vars) */}
+        <section className='vk-canvas'>
+          <LivePreview apiBase={apiBase} />
+          <ContrastChecker />
+          <CssVarsPanel cssVars={cssVars} />
+        </section>
+
+        {/* RIGHT: contextual controls */}
+        <aside className='vk-controls'>
+          {activeCategory === 'colors' && (
+            <>
+              <div className='vk-control-card'>
+                <div className='vk-control-card-head'>
+                  <span className='vk-control-card-icon'>
+                    <BgColorsOutlined />
+                  </span>
+                  <h3 className='vk-control-card-title'>Color tokens</h3>
+                </div>
+                <ColorControls />
+              </div>
+              <div className='vk-control-card'>
+                <div className='vk-control-card-head'>
+                  <span className='vk-control-card-icon'>
+                    <BgColorsOutlined />
+                  </span>
+                  <h3 className='vk-control-card-title'>Palette generator</h3>
+                </div>
+                <PaletteGenerator />
+              </div>
+            </>
+          )}
+
+          {activeCategory === 'type' && (
+            <>
+              <div className='vk-control-card'>
+                <div className='vk-control-card-head'>
+                  <span className='vk-control-card-icon'>
+                    <FontSizeOutlined />
+                  </span>
+                  <h3 className='vk-control-card-title'>Header font</h3>
+                </div>
+                <FontPicker
+                  label=''
+                  family={theme.typography?.headerFont || 'Inter'}
+                  weight={
+                    (theme.typography?.headerWeights?.[0] as
+                      | number
+                      | undefined) ?? 400
+                  }
+                  italic={!!theme.typography?.headerItalic}
+                  lineHeight={
+                    (theme.typography?.headerLineHeight as
+                      | number
+                      | undefined) ?? 1.25
+                  }
+                  letterSpacing={
+                    (theme.typography?.headerLetterSpacing as
+                      | number
+                      | undefined) ?? 0
+                  }
+                  onChange={(u) => {
+                    const patch: any = {}
+                    if (u.family !== undefined) patch.headerFont = u.family
+                    if (u.weight !== undefined) patch.headerWeights = [u.weight]
+                    if (u.italic !== undefined) patch.headerItalic = u.italic
+                    if (u.lineHeight !== undefined)
+                      patch.headerLineHeight = u.lineHeight
+                    if (u.letterSpacing !== undefined)
+                      patch.headerLetterSpacing = u.letterSpacing
+                    setTheme((prev: any) => ({
+                      ...prev,
+                      typography: { ...(prev.typography || {}), ...patch },
+                    }))
+                  }}
+                />
+              </div>
+
+              <div className='vk-control-card'>
+                <div className='vk-control-card-head'>
+                  <span className='vk-control-card-icon'>
+                    <FontSizeOutlined />
+                  </span>
+                  <h3 className='vk-control-card-title'>Paragraph font</h3>
+                </div>
+                <FontPicker
+                  label=''
+                  family={theme.typography?.paragraphFont || 'Inter'}
+                  weight={
+                    (theme.typography?.paragraphWeights?.[0] as
+                      | number
+                      | undefined) ?? 400
+                  }
+                  italic={!!theme.typography?.paragraphItalic}
+                  lineHeight={
+                    (theme.typography?.paragraphLineHeight as
+                      | number
+                      | undefined) ?? 1.6
+                  }
+                  letterSpacing={
+                    (theme.typography?.paragraphLetterSpacing as
+                      | number
+                      | undefined) ?? 0
+                  }
+                  onChange={(u) => {
+                    const patch: any = {}
+                    if (u.family !== undefined) patch.paragraphFont = u.family
+                    if (u.weight !== undefined)
+                      patch.paragraphWeights = [u.weight]
+                    if (u.italic !== undefined) patch.paragraphItalic = u.italic
+                    if (u.lineHeight !== undefined)
+                      patch.paragraphLineHeight = u.lineHeight
+                    if (u.letterSpacing !== undefined)
+                      patch.paragraphLetterSpacing = u.letterSpacing
+                    setTheme((prev: any) => ({
+                      ...prev,
+                      typography: { ...(prev.typography || {}), ...patch },
+                    }))
+                  }}
+                />
+              </div>
+            </>
+          )}
+
+          {activeCategory === 'spacing' && (
+            <div className='vk-control-card'>
+              <div className='vk-control-card-head'>
+                <span className='vk-control-card-icon'>
+                  <RadiusUprightOutlined />
+                </span>
+                <h3 className='vk-control-card-title'>Border radius</h3>
+              </div>
+              <BorderRadius />
+            </div>
+          )}
+
+          {activeCategory === 'brand' && (
+            <div className='vk-control-card'>
+              <div className='vk-control-card-head'>
+                <span className='vk-control-card-icon'>
+                  <FileImageOutlined />
+                </span>
+                <h3 className='vk-control-card-title'>Brand logo</h3>
+              </div>
+              <BrandLogo
+                value={theme.logoUrl}
+                apiBase={apiBase}
+                onChange={(url) =>
+                  setTheme((p: any) => ({ ...p, logoUrl: url }))
+                }
               />
-              {!collapsed && (
-                <div>
-                  <h1 className='app-title'>VibeKit</h1>
-                  <p className='app-subtitle'>theme builder</p>
-                </div>
-              )}
             </div>
-            {!collapsed && (
-              <Button
-                type='text'
-                icon={<MenuFoldOutlined />}
-                onClick={() => setCollapsed(!collapsed)}
-                className='mobile-collapse-btn'
-                style={{ fontSize: '16px' }}
+          )}
+
+          {activeCategory === 'themes' && (
+            <div className='vk-control-card'>
+              <div className='vk-control-card-head'>
+                <span className='vk-control-card-icon'>
+                  <SaveOutlined />
+                </span>
+                <h3 className='vk-control-card-title'>Saved themes</h3>
+              </div>
+              <SavedThemes
+                apiBase={apiBase}
+                themes={themes}
+                loading={loading}
+                err={err}
+                onLoad={loadTheme}
+                onDuplicate={duplicateTheme}
+                onDelete={deleteTheme}
               />
-            )}
-          </div>
-
-          <div className='sider-content'>
-            {/* Theme Name Section */}
-            <div className='sidebar-section'>
-              <div
-                className='section-header'
-                onClick={() => toggleSection('theme-name')}
-              >
-                <FileTextOutlined className='section-icon' />
-                {!collapsed && <h3 className='section-title'>Theme Name</h3>}
-                {!collapsed && (
-                  <RightOutlined
-                    className={`section-toggle ${
-                      expandedSections.includes('theme-name') ? 'expanded' : ''
-                    }`}
-                  />
-                )}
-              </div>
-              {!collapsed && expandedSections.includes('theme-name') && (
-                <div className='section-content'>
-                  <ThemeHeader
-                    name={themeName}
-                    saving={saving}
-                    hasCurrent={!!theme.id}
-                    onChange={(v) => {
-                      setThemeName(v)
-                      setTheme((prev: any) => ({ ...prev, name: v }))
-                    }}
-                    onSaveNew={() => saveTheme(true)}
-                    onSaveUpdate={() => saveTheme(false)}
-                  />
-                </div>
-              )}
             </div>
-
-            {/* Typography Section */}
-            <div className='sidebar-section'>
-              <div
-                className='section-header'
-                onClick={() => toggleSection('typography')}
-              >
-                <FontSizeOutlined className='section-icon' />
-                {!collapsed && <h3 className='section-title'>Typography</h3>}
-                {!collapsed && (
-                  <RightOutlined
-                    className={`section-toggle ${
-                      expandedSections.includes('typography') ? 'expanded' : ''
-                    }`}
-                  />
-                )}
-              </div>
-              {!collapsed && expandedSections.includes('typography') && (
-                <div className='section-content'>
-                  <FontPicker
-                    label='Header Font'
-                    family={theme.typography?.headerFont || 'Inter'}
-                    weight={
-                      (theme.typography?.headerWeights?.[0] as
-                        | number
-                        | undefined) ?? 400
-                    }
-                    italic={!!theme.typography?.headerItalic}
-                    lineHeight={
-                      (theme.typography?.headerLineHeight as
-                        | number
-                        | undefined) ?? 1.25
-                    }
-                    letterSpacing={
-                      (theme.typography?.headerLetterSpacing as
-                        | number
-                        | undefined) ?? 0
-                    }
-                    onChange={(u) => {
-                      const patch: any = {}
-                      if (u.family !== undefined) patch.headerFont = u.family
-                      if (u.weight !== undefined)
-                        patch.headerWeights = [u.weight]
-                      if (u.italic !== undefined) patch.headerItalic = u.italic
-                      if (u.lineHeight !== undefined)
-                        patch.headerLineHeight = u.lineHeight
-                      if (u.letterSpacing !== undefined)
-                        patch.headerLetterSpacing = u.letterSpacing
-                      setTheme((prev: any) => ({
-                        ...prev,
-                        typography: { ...(prev.typography || {}), ...patch },
-                      }))
-                    }}
-                  />
-
-                  <FontPicker
-                    label='Paragraph Font'
-                    family={theme.typography?.paragraphFont || 'Inter'}
-                    weight={
-                      (theme.typography?.paragraphWeights?.[0] as
-                        | number
-                        | undefined) ?? 400
-                    }
-                    italic={!!theme.typography?.paragraphItalic}
-                    lineHeight={
-                      (theme.typography?.paragraphLineHeight as
-                        | number
-                        | undefined) ?? 1.6
-                    }
-                    letterSpacing={
-                      (theme.typography?.paragraphLetterSpacing as
-                        | number
-                        | undefined) ?? 0
-                    }
-                    onChange={(u) => {
-                      const patch: any = {}
-                      if (u.family !== undefined) patch.paragraphFont = u.family
-                      if (u.weight !== undefined)
-                        patch.paragraphWeights = [u.weight]
-                      if (u.italic !== undefined)
-                        patch.paragraphItalic = u.italic
-                      if (u.lineHeight !== undefined)
-                        patch.paragraphLineHeight = u.lineHeight
-                      if (u.letterSpacing !== undefined)
-                        patch.paragraphLetterSpacing = u.letterSpacing
-                      setTheme((prev: any) => ({
-                        ...prev,
-                        typography: { ...(prev.typography || {}), ...patch },
-                      }))
-                    }}
-                  />
-                </div>
-              )}
-            </div>
-
-            {/* Colors Section */}
-            <div className='sidebar-section'>
-              <div
-                className='section-header'
-                onClick={() => toggleSection('colors')}
-              >
-                <BgColorsOutlined className='section-icon' />
-                {!collapsed && <h3 className='section-title'>Colors</h3>}
-                {!collapsed && (
-                  <RightOutlined
-                    className={`section-toggle ${
-                      expandedSections.includes('colors') ? 'expanded' : ''
-                    }`}
-                  />
-                )}
-              </div>
-              {!collapsed && expandedSections.includes('colors') && (
-                <div className='section-content'>
-                  <ColorControls />
-                  <PaletteGenerator />
-                </div>
-              )}
-            </div>
-
-            {/* Border Radius Section */}
-            <div className='sidebar-section'>
-              <div
-                className='section-header'
-                onClick={() => toggleSection('border-radius')}
-              >
-                <RadiusUprightOutlined className='section-icon' />
-                {!collapsed && <h3 className='section-title'>Border Radius</h3>}
-                {!collapsed && (
-                  <RightOutlined
-                    className={`section-toggle ${
-                      expandedSections.includes('border-radius')
-                        ? 'expanded'
-                        : ''
-                    }`}
-                  />
-                )}
-              </div>
-              {!collapsed && expandedSections.includes('border-radius') && (
-                <div className='section-content'>
-                  <BorderRadius />
-                </div>
-              )}
-            </div>
-
-            {/* Brand Logo Section */}
-            <div className='sidebar-section'>
-              <div
-                className='section-header'
-                onClick={() => toggleSection('brand-logo')}
-              >
-                <FileImageOutlined className='section-icon' />
-                {!collapsed && <h3 className='section-title'>Brand Logo</h3>}
-                {!collapsed && (
-                  <RightOutlined
-                    className={`section-toggle ${
-                      expandedSections.includes('brand-logo') ? 'expanded' : ''
-                    }`}
-                  />
-                )}
-              </div>
-              {!collapsed && expandedSections.includes('brand-logo') && (
-                <div className='section-content'>
-                  <BrandLogo
-                    value={theme.logoUrl}
-                    apiBase={apiBase}
-                    onChange={(url) =>
-                      setTheme((p: any) => ({ ...p, logoUrl: url }))
-                    }
-                  />
-                </div>
-              )}
-            </div>
-
-            {/* Saved Themes Section */}
-            <div className='sidebar-section'>
-              <div
-                className='section-header'
-                onClick={() => toggleSection('saved-themes')}
-              >
-                <SaveOutlined className='section-icon' />
-                {!collapsed && <h3 className='section-title'>Saved Themes</h3>}
-                {!collapsed && (
-                  <RightOutlined
-                    className={`section-toggle ${
-                      expandedSections.includes('saved-themes')
-                        ? 'expanded'
-                        : ''
-                    }`}
-                  />
-                )}
-              </div>
-              {!collapsed && expandedSections.includes('saved-themes') && (
-                <div className='section-content'>
-                  <SavedThemes
-                    apiBase={apiBase}
-                    themes={themes}
-                    loading={loading}
-                    err={err}
-                    onLoad={loadTheme}
-                    onDuplicate={duplicateTheme}
-                    onDelete={deleteTheme}
-                  />
-                </div>
-              )}
-            </div>
-          </div>
-        </Sider>
-
-        <Layout>
-          <Header className='app-header'>
-            <Button
-              type='text'
-              icon={collapsed ? <MenuUnfoldOutlined /> : <MenuFoldOutlined />}
-              onClick={() => setCollapsed(!collapsed)}
-              className={`header-toggle ${
-                !collapsed ? 'hidden-when-open' : ''
-              }`}
-              style={{ fontSize: '16px', width: 64, height: 64 }}
-            />
-          </Header>
-
-          <Content className='app-content'>
-            <div className='content-container'>
-              {/* Live Preview */}
-              <LivePreview apiBase={apiBase} />
-
-              {/* Contrast Checker */}
-              <ContrastChecker />
-
-              {/* CSS Vars Panel */}
-              <CssVarsPanel cssVars={cssVars} />
-            </div>
-          </Content>
-        </Layout>
-      </Layout>
-    </>
+          )}
+        </aside>
+      </main>
+    </div>
   )
 }

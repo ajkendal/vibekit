@@ -16,29 +16,32 @@ export default function CssVarsPanel({ cssVars }: Props) {
     }
   }
 
+  // Count tokens for the meta line
+  const tokenCount = (cssVars.match(/^\s*--/gm) || []).length
+
   return (
-    <section>
-      <strong>CSS Variables (:root)</strong>
-      <pre
-        style={{
-          marginTop: 8,
-          padding: 12,
-          background: '#222222',
-          color: '#F0F0F0',
-          borderRadius: 10,
-          border: '1px solid #111827',
-        }}
-      >
-        {cssVars}
-      </pre>
-      <div>
-        <button className='btn' onClick={copy}>
-          {isCopied ? 'Copied!' : 'Copy CSS'}
+    <section className='vk-section'>
+      <div className='vk-section-head'>
+        <div>
+          <div className='vk-eyebrow'>CSS variables</div>
+          <h2 className='vk-section-title'>Drop into your :root</h2>
+        </div>
+        <div className='vk-section-meta'>{tokenCount} tokens</div>
+      </div>
+
+      <pre className='vk-code-block'>{cssVars}</pre>
+
+      <div className='vk-code-foot'>
+        <span className='vk-code-hint'>
+          Paste this into your global <code>:root</code> to adopt your theme.
+        </span>
+        <button
+          className={`vk-btn ${isCopied ? 'vk-btn--soft' : 'vk-btn--primary'} vk-btn--sm`}
+          onClick={copy}
+        >
+          {isCopied ? '✓ Copied' : 'Copy CSS'}
         </button>
       </div>
-      <small>
-        Paste this into your global <code>:root</code> to adopt your theme.
-      </small>
     </section>
   )
 }

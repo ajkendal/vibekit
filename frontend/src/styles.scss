@@ -1,4 +1,35 @@
-@import url('https://fonts.googleapis.com/css2?family=Konkhmer+Sleokchher&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500&family=JetBrains+Mono:wght@400;500&display=swap');
+
+/* ───────────────────────────────────────────────────────── */
+/* VibeKit brand tokens — see docs/brand-system.md           */
+/* ───────────────────────────────────────────────────────── */
+:root {
+  /* Brand palette */
+  --vk-violet: #8338EC; /* primary actions, brand */
+  --vk-azure:  #3A86FF; /* focus, links, info */
+  --vk-flame:  #FB5607; /* accents, callouts */
+  --vk-sun:    #FFBE0B; /* highlights, success-feel */
+  --vk-pink:   #FF006E; /* love, favorites (reserve) */
+
+  /* Neutrals */
+  --vk-ink:    #1A1A1A; /* primary text, dark surfaces */
+  --vk-canvas: #FAF7F2; /* warm app background */
+
+  /* Surface tokens */
+  --vk-surface:        #FFFFFF;
+  --vk-surface-muted:  #F5F2EC;
+  --vk-border:         rgba(26, 26, 26, 0.08);
+  --vk-border-canvas:  rgba(26, 26, 26, 0.06);
+
+  /* Shape */
+  --vk-radius-sm: 6px;
+  --vk-radius:    12px;
+  --vk-radius-lg: 16px;
+
+  /* Typography */
+  --vk-font-sans: 'Inter', system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
+  --vk-font-mono: 'JetBrains Mono', ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+}
 
 .container {
   min-height: 100vh;
@@ -22,8 +53,8 @@
 }
 
 .app-sider {
-  background-color: #fff;
-  border-right: 1px solid #f0f0f0;
+  background-color: var(--vk-canvas);
+  border-right: 0.5px solid var(--vk-border-canvas);
   overflow: auto;
 
   // Responsive width for tablet and mobile
@@ -56,7 +87,7 @@
 
 .app-branding {
   padding: 20px 16px;
-  border-bottom: 1px solid #f0f0f0;
+  border-bottom: 0.5px solid var(--vk-border-canvas);
   display: flex;
   align-items: center;
   gap: 12px;
@@ -80,18 +111,21 @@
 .app-title {
   margin: 0;
   font-size: 18px;
-  font-weight: 600;
-  color: #262626;
+  font-weight: 500;
+  color: var(--vk-ink);
   line-height: 1.2;
-  font-family: 'Konkhmer Sleokchher', sans-serif;
+  letter-spacing: -0.03em;
+  font-family: var(--vk-font-sans);
 }
 
 .app-subtitle {
   margin: 0;
-  font-size: 12px;
-  color: #8c8c8c;
+  font-size: 11px;
+  color: rgba(26, 26, 26, 0.5);
   line-height: 1.2;
-  font-family: 'Konkhmer Sleokchher', sans-serif;
+  font-family: var(--vk-font-mono);
+  font-weight: 400;
+  letter-spacing: 0.02em;
 }
 
 .sider-content {
@@ -99,16 +133,16 @@
 }
 
 .app-header {
-  background-color: #fff;
-  border-bottom: 1px solid #f0f0f0;
+  background-color: var(--vk-canvas);
+  border-bottom: 0.5px solid var(--vk-border-canvas);
   padding: 0 16px;
   display: flex;
   align-items: center;
 }
 
 .app-content {
-  padding: 16px;
-  background-color: #f5f5f5;
+  padding: 24px;
+  background-color: var(--vk-canvas);
   overflow: auto;
 
   // Prevent layout shifts on mobile when sidebar toggles
@@ -167,28 +201,29 @@
 
 // Sidebar Section Styles
 .sidebar-section {
-  margin-bottom: 16px;
-  border: 1px solid #f0f0f0;
-  border-radius: 6px;
+  margin-bottom: 12px;
+  border: 0.5px solid var(--vk-border-canvas);
+  border-radius: var(--vk-radius);
   overflow: hidden;
+  background-color: var(--vk-surface);
 }
 
 .section-header {
   padding: 12px 16px;
-  background-color: #fafafa;
-  border-bottom: 1px solid #f0f0f0;
+  background-color: var(--vk-surface);
+  border-bottom: 0.5px solid transparent;
   cursor: pointer;
   display: flex;
   align-items: center;
   gap: 12px;
-  transition: background-color 0.2s;
+  transition: background-color 0.15s ease;
 
   &:hover {
-    background-color: #f0f0f0;
+    background-color: var(--vk-surface-muted);
   }
 
   .section-icon {
-    color: #0189af;
+    color: var(--vk-violet);
     font-size: 16px;
   }
 
@@ -196,13 +231,14 @@
     flex: 1;
     font-size: 14px;
     font-weight: 500;
-    color: #262626;
+    color: var(--vk-ink);
     margin: 0;
-    font-family: 'Konkhmer Sleokchher', sans-serif;
+    letter-spacing: -0.01em;
+    font-family: var(--vk-font-sans);
   }
 
   .section-toggle {
-    color: #8c8c8c;
+    color: rgba(26, 26, 26, 0.4);
     font-size: 12px;
     transition: transform 0.2s;
 
@@ -212,7 +248,11 @@
   }
 }
 
+.sidebar-section:has(.section-content) .section-header {
+  border-bottom-color: var(--vk-border-canvas);
+}
+
 .section-content {
   padding: 16px;
-  background-color: #fff;
+  background-color: var(--vk-surface);
 }

@@ -400,14 +400,14 @@ export default function App() {
           <div className='app-branding'>
             <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
               <img
-                src='/brand/VibeKit_Logo.svg'
-                alt='VibeKit Logo'
+                src='/brand/VibeKit_Mark.svg'
+                alt='VibeKit'
                 className={`app-logo ${collapsed ? 'collapsed' : 'expanded'}`}
               />
               {!collapsed && (
                 <div>
                   <h1 className='app-title'>VibeKit</h1>
-                  <p className='app-subtitle'>Theme Builder</p>
+                  <p className='app-subtitle'>theme builder</p>
                 </div>
               )}
             </div>

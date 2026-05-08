@@ -1,24 +1,13 @@
 import { useMemo, useState } from 'react'
 import { useTheme } from '../store/theme'
+import { hexToRgb as libHexToRgb, rgbToHex } from '../lib/color'
 import styles from '../styles/PaletteGenerator.module.scss'
 
 type Scheme = 'Monochromatic' | 'Analogous' | 'Complementary' | 'Triadic'
 
-// Simple hex color manipulation functions
+// Local non-null wrapper — palette math always works on full hex strings.
 function hexToRgb(hex: string): { r: number; g: number; b: number } {
-  const h = hex.replace('#', '')
-  const r = parseInt(h.substring(0, 2), 16)
-  const g = parseInt(h.substring(2, 4), 16)
-  const b = parseInt(h.substring(4, 6), 16)
-  return { r, g, b }
-}
-
-function rgbToHex(r: number, g: number, b: number): string {
-  const toHex = (n: number) =>
-    Math.round(Math.max(0, Math.min(255, n)))
-      .toString(16)
-      .padStart(2, '0')
-  return `#${toHex(r)}${toHex(g)}${toHex(b)}`
+  return libHexToRgb(hex) ?? { r: 0, g: 0, b: 0 }
 }
 
 function adjustBrightness(hex: string, factor: number): string {

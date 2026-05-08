@@ -1,10 +1,11 @@
 import { useState } from 'react'
 import DeleteModal from './DeleteModal'
+import { themeCssUrl, themePreviewUrl } from '../lib/api'
 
 type Row = { id: string; name?: string; created_at?: number | null }
 
 type Props = {
-  apiBase: string
+  apiBase?: string
   themes: Row[]
   loading?: boolean
   err?: string | null
@@ -14,7 +15,6 @@ type Props = {
 }
 
 export default function SavedThemes({
-  apiBase,
   themes,
   loading,
   err,
@@ -75,36 +75,12 @@ export default function SavedThemes({
 
   async function copyCssUrl(id: string) {
     try {
-      const url = getCssUrl(id)
-      await navigator.clipboard.writeText(url)
+      await navigator.clipboard.writeText(themeCssUrl(id))
       setCopiedCssId(id)
       setTimeout(() => setCopiedCssId(null), 2000)
     } catch {
       alert('Copy failed')
     }
-  }
-
-  function getCssUrl(id: string) {
-    // In development, use the local API server directly
-    if (
-      (location.hostname === 'localhost' ||
-        location.hostname === '127.0.0.1') &&
-      (apiBase === '/api' || !apiBase.startsWith('http'))
-    ) {
-      return `http://127.0.0.1:8787/themes/${id}/css`
-    }
-    return `${apiBase}/themes/${id}/css`
-  }
-
-  function previewUrl(id: string) {
-    if (
-      (location.hostname === 'localhost' ||
-        location.hostname === '127.0.0.1') &&
-      (apiBase === '/api' || !apiBase.startsWith('http'))
-    ) {
-      return `http://127.0.0.1:8787/themes/${id}/preview`
-    }
-    return `${apiBase}/themes/${id}/preview`
   }
 
   return (
@@ -172,7 +148,7 @@ export default function SavedThemes({
                 </button>
                 <a
                   className='btn'
-                  href={previewUrl(t.id)}
+                  href={themePreviewUrl(t.id)}
                   target='_blank'
                   rel='noreferrer'
                 >

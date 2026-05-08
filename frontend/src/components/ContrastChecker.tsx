@@ -1,37 +1,6 @@
 import { useMemo } from 'react'
 import { useTheme } from '../store/theme'
-
-type RGB = { r: number; g: number; b: number }
-
-function hexToRgb(hex: string): RGB | null {
-  const m = (hex || '').trim().match(/^#?([a-f\d]{3}|[a-f\d]{6})$/i)
-  if (!m) return null
-  let h = m[1].toLowerCase()
-  if (h.length === 3) h = h.split('').map((c) => c + c).join('')
-  const n = parseInt(h, 16)
-  return { r: (n >> 16) & 255, g: (n >> 8) & 255, b: n & 255 }
-}
-
-function srgbToLinear(c: number) {
-  const cs = c / 255
-  return cs <= 0.03928 ? cs / 12.92 : Math.pow((cs + 0.055) / 1.055, 2.4)
-}
-
-function relativeLuminance(hex: string) {
-  const rgb = hexToRgb(hex)
-  if (!rgb) return 0
-  return (
-    0.2126 * srgbToLinear(rgb.r) +
-    0.7152 * srgbToLinear(rgb.g) +
-    0.0722 * srgbToLinear(rgb.b)
-  )
-}
-
-function contrastRatio(fg: string, bg: string) {
-  const L1 = relativeLuminance(fg)
-  const L2 = relativeLuminance(bg)
-  return (Math.max(L1, L2) + 0.05) / (Math.min(L1, L2) + 0.05)
-}
+import { contrastRatio } from '../lib/color'
 
 type Pair = {
   title: string

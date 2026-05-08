@@ -1,30 +1,8 @@
 import { useEffect, useState } from 'react'
 import { useTheme } from '../store/theme'
+import { rgba, textOn } from '../lib/color'
 
 /* ───────── helpers ───────── */
-
-function hexToRgb(hex: string): { r: number; g: number; b: number } | null {
-  if (!hex || typeof hex !== 'string') return null
-  const m = hex.trim().match(/^#?([a-f\d]{3}|[a-f\d]{6})$/i)
-  if (!m) return null
-  let h = m[1]
-  if (h.length === 3) h = h.split('').map((c) => c + c).join('')
-  const n = parseInt(h, 16)
-  return { r: (n >> 16) & 255, g: (n >> 8) & 255, b: n & 255 }
-}
-
-function rgba(hex: string, a: number): string {
-  const c = hexToRgb(hex)
-  if (!c) return `rgba(0,0,0,${a})`
-  return `rgba(${c.r}, ${c.g}, ${c.b}, ${a})`
-}
-
-function textOn(bg: string, fallback = '#ffffff'): string {
-  const c = hexToRgb(bg)
-  if (!c) return fallback
-  const yiq = (c.r * 299 + c.g * 587 + c.b * 114) / 1000
-  return yiq >= 186 ? '#111111' : '#ffffff'
-}
 
 function resolveLogoForUI(
   raw: string | null | undefined,

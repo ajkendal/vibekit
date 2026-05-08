@@ -1,4 +1,5 @@
 import { useMemo, useState } from 'react'
+import { uploadLogo } from '../lib/api'
 
 type Props = {
   value?: string | null
@@ -21,18 +22,11 @@ export default function BrandLogo({ value, apiBase, onChange }: Props) {
     setBusy(true)
     setErr(null)
     try {
-      const fd = new FormData()
-      fd.append('file', file)
-      const res = await fetch(`${apiBase}/uploads/logo`, {
-        method: 'POST',
-        body: fd,
-      })
-      if (!res.ok) throw new Error(`Upload failed: ${res.status}`)
-      const out = (await res.json()) as { url?: string }
-      if (!out?.url) throw new Error('Upload failed: bad response')
-      onChange(out.url) // e.g. "/uploads/<id>"
-    } catch (e: any) {
-      setErr(e.message || 'Upload failed')
+      const url = await uploadLogo(file)
+      onChange(url) // e.g. "/uploads/<id>"
+    } catch (e: unknown) {
+      const msg = e instanceof Error ? e.message : 'Upload failed'
+      setErr(msg)
     } finally {
       setBusy(false)
     }

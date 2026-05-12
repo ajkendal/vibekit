@@ -28,16 +28,23 @@ export default function ContrastChecker() {
   const secondary = colors.secondary || '#3b82f6'
   const tertiary = colors.tertiary || '#9333ea'
 
+  // Pairs are built from the user's own theme tokens — neutral_light / mid /
+  // dark plus their brand colors. The "Light"/"Dark"/"Mid" labels refer to
+  // what the user picked in Color tokens, not VibeKit's design system.
   const pairs: Pair[] = useMemo(
     () => [
-      { title: 'Ink on canvas', fg: dark, bg: light },
-      { title: 'Mid on canvas', fg: mid, bg: light },
-      { title: 'Primary on canvas', fg: primary, bg: light },
-      { title: 'Secondary on canvas', fg: secondary, bg: light },
-      { title: 'Tertiary on canvas', fg: tertiary, bg: light },
-      { title: 'Canvas on primary', fg: light, bg: primary },
-      { title: 'Canvas on secondary', fg: light, bg: secondary },
-      { title: 'Canvas on tertiary', fg: light, bg: tertiary },
+      { title: 'Dark on Light', fg: dark, bg: light },
+      { title: 'Mid on Light', fg: mid, bg: light },
+      { title: 'Primary on Light', fg: primary, bg: light },
+      { title: 'Secondary on Light', fg: secondary, bg: light },
+      { title: 'Tertiary on Light', fg: tertiary, bg: light },
+      { title: 'Light on Dark', fg: light, bg: dark },
+      { title: 'Light on Primary', fg: light, bg: primary },
+      { title: 'Dark on Primary', fg: dark, bg: primary },
+      { title: 'Light on Secondary', fg: light, bg: secondary },
+      { title: 'Dark on Secondary', fg: dark, bg: secondary },
+      { title: 'Light on Tertiary', fg: light, bg: tertiary },
+      { title: 'Dark on Tertiary', fg: dark, bg: tertiary },
     ],
     [light, mid, dark, primary, secondary, tertiary]
   )

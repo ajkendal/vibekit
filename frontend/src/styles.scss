@@ -1229,3 +1229,53 @@ body {
   margin: 4px 0 2px;
   cursor: pointer;
 }
+
+/* ───────────────────────────────────────────────────────── */
+/* Border radius panel                                       */
+/* ───────────────────────────────────────────────────────── */
+.vk-br-field {
+  margin-bottom: 18px;
+
+  &:last-of-type {
+    margin-bottom: 0;
+  }
+}
+
+.vk-br-field-label {
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: rgba(26, 26, 26, 0.45);
+  font-family: var(--vk-font-sans);
+}
+
+.vk-br-slider-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  margin-bottom: 4px;
+}
+
+.vk-br-value {
+  font-family: var(--vk-font-mono);
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--vk-ink);
+}
+
+.vk-br-slider {
+  width: 100%;
+  accent-color: var(--vk-violet);
+  cursor: pointer;
+  margin: 4px 0 2px;
+}
+
+.vk-br-scale {
+  display: flex;
+  justify-content: space-between;
+  font-size: 10px;
+  font-family: var(--vk-font-mono);
+  color: rgba(26, 26, 26, 0.4);
+  margin-top: 2px;
+}

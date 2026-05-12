@@ -3,6 +3,7 @@ import ColorControls from './components/ColorControls'
 import LivePreview from './components/LivePreview'
 import PaletteGenerator from './components/PaletteGenerator'
 import FontPicker from './components/FontPicker'
+import TypeScale from './components/TypeScale'
 import SavedThemes from './components/SavedThemes'
 import BrandLogo from './components/BrandLogo'
 import CssVarsPanel from './components/CssVarsPanel'
@@ -92,6 +93,7 @@ export default function App() {
     const body: Theme = {
       ...theme,
       name: safeName,
+      description: theme.description ?? '',
       logoUrl: theme.logoUrl ?? null,
       typography: {
         ...(theme.typography ?? {}),
@@ -326,6 +328,16 @@ export default function App() {
                   }}
                 />
               </div>
+
+              <div className='vk-control-card'>
+                <div className='vk-control-card-head'>
+                  <span className='vk-control-card-icon'>
+                    <FontSizeOutlined />
+                  </span>
+                  <h3 className='vk-control-card-title'>Type scale</h3>
+                </div>
+                <TypeScale />
+              </div>
             </>
           )}
 
@@ -354,6 +366,10 @@ export default function App() {
                 apiBase={apiBase}
                 onChange={(url) =>
                   setTheme((p) => ({ ...p, logoUrl: url }))
+                }
+                description={theme.description}
+                onDescriptionChange={(desc) =>
+                  setTheme((p) => ({ ...p, description: desc }))
                 }
               />
             </div>

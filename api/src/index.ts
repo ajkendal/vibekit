@@ -1,3 +1,6 @@
+import { themeToCssVars as exportCss } from './exports'
+import { renderPreviewPage } from './preview'
+
 export interface Env {
   DB: D1Database
 }
@@ -75,6 +78,7 @@ function html(
 type ThemeRow = {
   id: string
   name: string | null
+  description?: string | null
   logo_url?: string | null
   colors?: string | null
   typography?: string | null
@@ -99,6 +103,7 @@ function parseTheme(row: ThemeRow | null) {
   return {
     id: row.id,
     name: row.name || null,
+    description: row.description || null,
     logoUrl: row.logo_url || null,
     colors,
     typography,
@@ -107,59 +112,9 @@ function parseTheme(row: ThemeRow | null) {
   }
 }
 
-function themeToCssVars(theme: any) {
-  const c = theme?.colors || {}
-  const t = theme?.typography || {}
-  const s = theme?.spacing || {}
-  const lines: string[] = []
-  const push = (k: string, v?: string | number) =>
-    v != null && lines.push(`${k}: ${v};`)
-
-  const keys = [
-    'neutral_light',
-    'neutral_mid',
-    'neutral_dark',
-    'primary',
-    'secondary',
-    'tertiary',
-    'warning',
-    'danger',
-    'caution',
-    'success',
-  ] as const
-
-  keys.forEach((k) => {
-    const val = c[k]
-    if (val) push(`--color-${k.replace('_', '-')}`, val)
-  })
-
-  if (typeof t.base === 'number') push('--font-base', `${t.base}px`)
-  if (typeof t.ratio === 'number') push('--font-ratio', String(t.ratio))
-  if (t.headerFont)
-    push(
-      '--font-header',
-      `'${t.headerFont}', system-ui, -apple-system, Segoe UI, Roboto, sans-serif`
-    )
-  if (t.paragraphFont)
-    push(
-      '--font-paragraph',
-      `'${t.paragraphFont}', system-ui, -apple-system, Segoe UI, Roboto, sans-serif`
-    )
-  if (typeof t.headerLineHeight === 'number')
-    push('--line-height-header', String(t.headerLineHeight))
-  if (typeof t.paragraphLineHeight === 'number')
-    push('--line-height-paragraph', String(t.paragraphLineHeight))
-  if (typeof t.headerLetterSpacing === 'number')
-    push('--letter-spacing-header', `${t.headerLetterSpacing}em`)
-  if (typeof t.paragraphLetterSpacing === 'number')
-    push('--letter-spacing-paragraph', `${t.paragraphLetterSpacing}em`)
-
-  // Border radius from spacing
-  if (typeof s.borderRadius === 'number')
-    push('--border-radius', `${s.borderRadius}px`)
-
-  return `:root{\n  ${lines.join('\n  ')}\n}`
-}
+// Canonical implementation lives in ./exports — re-export to keep
+// existing call sites working without changes.
+const themeToCssVars = exportCss
 
 async function getTheme(env: Env, id: string) {
   const row = await env.DB.prepare('SELECT * FROM themes WHERE id = ?')
@@ -192,11 +147,12 @@ export default {
     // GET /themes
     if (request.method === 'GET' && url.pathname === '/themes') {
       const rows = await env.DB.prepare(
-        'SELECT id, name, created_at FROM themes ORDER BY created_at DESC'
+        'SELECT id, name, description, created_at FROM themes ORDER BY created_at DESC'
       ).all<ThemeRow>()
       const list = (rows.results || []).map((r: ThemeRow) => ({
         id: r.id,
         name: r.name || 'Untitled Theme',
+        description: r.description || null,
         created_at: r.created_at ?? null,
       }))
       return json(list, {}, origin)
@@ -214,6 +170,9 @@ export default {
 
       const id = body.id || crypto.randomUUID()
       const name = (body.name || 'Untitled Theme').toString()
+      const description = body.description
+        ? String(body.description).slice(0, 500)
+        : null
       const logo_url = body.logoUrl || null
       const colors = JSON.stringify(body.colors || {})
       const typography = JSON.stringify(body.typography || {})
@@ -222,20 +181,30 @@ export default {
 
       await env.DB.prepare(
         `
-        INSERT INTO themes (id, name, logo_url, colors, typography, spacing, created_at)
-        VALUES (?, ?, ?, ?, ?, ?, ?)
+        INSERT INTO themes (id, name, description, logo_url, colors, typography, spacing, created_at)
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?)
         ON CONFLICT(id) DO UPDATE SET
           name = excluded.name,
+          description = excluded.description,
           logo_url = excluded.logo_url,
           colors = excluded.colors,
           typography = excluded.typography,
           spacing = excluded.spacing
       `
       )
-        .bind(id, name, logo_url, colors, typography, spacing, created_at)
+        .bind(
+          id,
+          name,
+          description,
+          logo_url,
+          colors,
+          typography,
+          spacing,
+          created_at
+        )
         .run()
 
-      return json({ id, name }, { status: 200 }, origin)
+      return json({ id, name, description }, { status: 200 }, origin)
     }
 
     // GET /themes/:id
@@ -277,67 +246,14 @@ export default {
       }
     }
 
-    // GET /themes/:id/preview (HTML demo)
+    // GET /themes/:id/preview (HTML demo + multi-format exports)
     {
       const match = url.pathname.match(/^\/themes\/([a-f0-9-]+)\/preview$/)
       if (request.method === 'GET' && match) {
         const id = match[1]
         const t = await getTheme(env, id)
         if (!t) return html('<h1>Theme not found</h1>', { status: 404 }, origin)
-        const css = themeToCssVars(t)
-        const doc = `<!doctype html>
-<html>
-<head>
-<meta charset="utf-8"/>
-<meta name="viewport" content="width=device-width, initial-scale=1"/>
-<title>${t.name || 'Theme Preview'}</title>
-<style>
-${css}
-:root {
-  --bg: var(--color-neutral-light, #ffffff);
-  --fg: var(--color-neutral-dark, #111111);
-  --primary: var(--color-primary, #2563eb);
-  --secondary: var(--color-secondary, #6b7280);
-}
-body {
-  margin: 0;
-  font-family: var(--font-paragraph, system-ui, -apple-system, Segoe UI, Roboto, sans-serif);
-  background: var(--bg);
-  color: var(--fg);
-  line-height: var(--line-height-paragraph, 1.6);
-  letter-spacing: var(--letter-spacing-paragraph, 0em);
-}
-h1,h2,h3 {
-  font-family: var(--font-header, system-ui, -apple-system, Segoe UI, Roboto, sans-serif);
-  line-height: var(--line-height-header, 1.25);
-  letter-spacing: var(--letter-spacing-header, 0em);
-}
-.card {
-  max-width: 760px; margin: 32px auto; padding: 20px;
-  border-radius: 12px; border: 1px solid #e5e7eb; background: #fff;
-}
-.btn {
-  padding: 8px 12px; border-radius: 8px; border: 0;
-  background: var(--primary); color: #fff; font-weight: 600;
-}
-.badge {
-  display:inline-block; padding: 4px 8px; border-radius: 999px;
-  background: var(--secondary); color: #fff; font-size: 12px;
-}
-.code { background:#0b1020; color:#e5e7eb; padding:10px 12px; border-radius:10px; }
-</style>
-</head>
-<body>
-  <div class="card">
-    <h1>${t.name || 'Theme Preview'}</h1>
-    <p>This page uses your theme’s CSS variables from <code>/themes/${id}/css</code>.</p>
-    <p><span class="badge">Badge</span></p>
-    <p><button class="btn">Primary Button</button></p>
-    <pre class="code">${css.replace(/</g, '&lt;')}</pre>
-  </div>
-</body>
-</html>`
-        return html(doc, { status: 200 }, origin)
+        return html(renderPreviewPage(t), { status: 200 }, origin)
       }
     }
 

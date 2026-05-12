@@ -232,23 +232,32 @@ body {
 
 .vk-preview-grid {
   display: grid;
-  grid-template-columns: 1fr 220px;
+  grid-template-columns: minmax(0, 1fr) 220px;
   gap: 18px;
   align-items: start;
 
-  @media (max-width: 760px) {
-    grid-template-columns: 1fr;
-    justify-items: center;
+  /* Stack vertically below ~1180px viewport — the workspace's 65/35 split
+     leaves too little room for the web mockup at typical laptop widths. */
+  @media (max-width: 1180px) {
+    grid-template-columns: minmax(0, 1fr);
   }
 }
 
 .vk-preview-grid--web-only {
-  grid-template-columns: 1fr;
+  grid-template-columns: minmax(0, 1fr);
 }
 
 .vk-preview-grid--mobile-only {
   grid-template-columns: 1fr;
   justify-items: center;
+}
+
+/* Mobile mockup wrapper — keeps the 220px phone centered when stacked. */
+.vk-mobile-mount {
+  display: flex;
+  justify-content: center;
+  width: 100%;
+  min-width: 0;
 }
 
 .vk-preview-footer {
@@ -1231,6 +1240,108 @@ body {
 }
 
 /* ───────────────────────────────────────────────────────── */
+/* Type scale panel                                          */
+/* ───────────────────────────────────────────────────────── */
+.vk-ts-field {
+  margin-bottom: 12px;
+
+  &:last-of-type {
+    margin-bottom: 0;
+  }
+}
+
+.vk-ts-field-label {
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: rgba(26, 26, 26, 0.45);
+  margin: 0 0 6px;
+  display: block;
+  font-family: var(--vk-font-sans);
+}
+
+.vk-ts-pills {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+}
+
+.vk-ts-pill {
+  appearance: none;
+  border: 0.5px solid rgba(26, 26, 26, 0.12);
+  background: var(--vk-surface);
+  cursor: pointer;
+  font-family: var(--vk-font-sans);
+  font-size: 11px;
+  font-weight: 500;
+  color: rgba(26, 26, 26, 0.7);
+  padding: 6px 10px;
+  border-radius: 6px;
+  letter-spacing: -0.01em;
+  transition: background 0.15s ease, border-color 0.15s ease, color 0.15s ease;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+
+  &:hover {
+    color: var(--vk-ink);
+    border-color: rgba(26, 26, 26, 0.2);
+  }
+
+  &.is-active {
+    background: var(--vk-ink);
+    color: var(--vk-canvas);
+    border-color: var(--vk-ink);
+    font-weight: 600;
+  }
+}
+
+.vk-ts-pill-sub {
+  font-family: var(--vk-font-mono);
+  font-size: 10px;
+  opacity: 0.55;
+  font-weight: 400;
+}
+
+.vk-ts-preview {
+  background: var(--vk-surface-muted);
+  border-radius: 10px;
+  padding: 14px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.vk-ts-preview-row {
+  display: flex;
+  align-items: baseline;
+  gap: 12px;
+}
+
+.vk-ts-preview-sample {
+  color: var(--vk-ink);
+  font-weight: 600;
+  letter-spacing: -0.02em;
+  flex-shrink: 0;
+  min-width: 56px;
+}
+
+.vk-ts-preview-label {
+  font-family: var(--vk-font-sans);
+  font-size: 11px;
+  font-weight: 500;
+  color: rgba(26, 26, 26, 0.55);
+  flex: 1;
+}
+
+.vk-ts-preview-size {
+  font-family: var(--vk-font-mono);
+  font-size: 10px;
+  color: rgba(26, 26, 26, 0.45);
+}
+
+/* ───────────────────────────────────────────────────────── */
 /* Border radius panel                                       */
 /* ───────────────────────────────────────────────────────── */
 .vk-br-field {
@@ -1278,4 +1389,249 @@ body {
   font-family: var(--vk-font-mono);
   color: rgba(26, 26, 26, 0.4);
   margin-top: 2px;
+}
+
+/* ───────────────────────────────────────────────────────── */
+/* Brand panel (BrandLogo)                                   */
+/* ───────────────────────────────────────────────────────── */
+.vk-brand-field {
+  margin-bottom: 14px;
+
+  &:last-of-type {
+    margin-bottom: 0;
+  }
+}
+
+.vk-brand-field-label {
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: rgba(26, 26, 26, 0.45);
+  display: block;
+  margin-bottom: 8px;
+  font-family: var(--vk-font-sans);
+}
+
+.vk-brand-preview {
+  position: relative;
+  width: 100%;
+  min-height: 120px;
+  background: var(--vk-surface-muted);
+  border: 0.5px solid rgba(26, 26, 26, 0.08);
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 16px;
+  overflow: hidden;
+  transition: background 0.15s ease, border-color 0.15s ease;
+}
+
+.vk-brand-preview-empty {
+  border: 1px dashed rgba(26, 26, 26, 0.18);
+  background: transparent;
+}
+
+.vk-brand-preview-img {
+  max-width: 100%;
+  max-height: 88px;
+  object-fit: contain;
+  display: block;
+}
+
+.vk-brand-empty-text {
+  font-size: 12px;
+  color: rgba(26, 26, 26, 0.5);
+  text-align: center;
+  font-family: var(--vk-font-sans);
+}
+
+.vk-brand-empty-sub {
+  display: block;
+  font-size: 10px;
+  margin-top: 4px;
+  color: rgba(26, 26, 26, 0.35);
+  font-family: var(--vk-font-mono);
+}
+
+.vk-brand-actions {
+  display: flex;
+  gap: 8px;
+  margin-top: 10px;
+}
+
+.vk-brand-hint {
+  display: block;
+  margin-top: 10px;
+  font-size: 11px;
+  color: rgba(26, 26, 26, 0.5);
+  font-family: var(--vk-font-sans);
+  line-height: 1.5;
+}
+
+.vk-brand-err {
+  display: block;
+  margin-top: 8px;
+  padding: 6px 10px;
+  border-radius: 6px;
+  background: rgba(255, 0, 110, 0.08);
+  color: var(--vk-pink);
+  font-size: 11px;
+  font-family: var(--vk-font-sans);
+  font-weight: 500;
+}
+
+.vk-brand-uploading {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(250, 247, 242, 0.85);
+  font-size: 12px;
+  color: var(--vk-ink);
+  font-weight: 600;
+  font-family: var(--vk-font-sans);
+  letter-spacing: -0.01em;
+}
+
+.vk-brand-name {
+  width: 100%;
+  background: var(--vk-surface);
+  border: 0.5px solid rgba(26, 26, 26, 0.12);
+  border-radius: 8px;
+  padding: 8px 10px;
+  font-family: var(--vk-font-sans);
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--vk-ink);
+  outline: 0;
+  transition: border-color 0.15s ease, box-shadow 0.15s ease;
+
+  &::placeholder {
+    color: rgba(26, 26, 26, 0.35);
+    font-weight: 400;
+  }
+
+  &:focus {
+    border-color: var(--vk-azure);
+    box-shadow: 0 0 0 2px rgba(58, 134, 255, 0.2);
+  }
+}
+
+.vk-brand-name-hint {
+  display: block;
+  margin-top: 6px;
+  font-size: 11px;
+  color: rgba(26, 26, 26, 0.5);
+  font-family: var(--vk-font-sans);
+  line-height: 1.4;
+}
+
+/* ───────────────────────────────────────────────────────── */
+/* Saved themes panel                                        */
+/* ───────────────────────────────────────────────────────── */
+.vk-saved-list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.vk-saved-card {
+  background: var(--vk-surface);
+  border: 0.5px solid var(--vk-border);
+  border-radius: 10px;
+  padding: 12px 14px;
+  transition: border-color 0.15s ease, background 0.15s ease;
+
+  &:hover {
+    border-color: rgba(26, 26, 26, 0.16);
+    background: var(--vk-surface-muted);
+  }
+}
+
+.vk-saved-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 10px;
+  margin-bottom: 2px;
+}
+
+.vk-saved-title {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--vk-ink);
+  letter-spacing: -0.01em;
+  font-family: var(--vk-font-sans);
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  flex: 1;
+  line-height: 1.4;
+}
+
+.vk-saved-meta {
+  font-size: 11px;
+  color: rgba(26, 26, 26, 0.5);
+  font-family: var(--vk-font-sans);
+}
+
+.vk-saved-desc {
+  font-size: 12px;
+  color: rgba(26, 26, 26, 0.7);
+  font-family: var(--vk-font-sans);
+  line-height: 1.45;
+  margin-top: 6px;
+  margin-bottom: 10px;
+  overflow: hidden;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+}
+
+.vk-saved-meta + .vk-saved-actions {
+  margin-top: 10px;
+}
+
+.vk-saved-actions {
+  display: flex;
+  gap: 6px;
+  align-items: center;
+  flex-wrap: wrap;
+}
+
+.vk-saved-actions-end {
+  margin-left: auto;
+}
+
+.vk-saved-empty {
+  border: 1px dashed rgba(26, 26, 26, 0.18);
+  border-radius: 12px;
+  padding: 28px 20px;
+  text-align: center;
+  font-family: var(--vk-font-sans);
+}
+
+.vk-saved-empty-title {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--vk-ink);
+  letter-spacing: -0.01em;
+  margin-bottom: 4px;
+}
+
+.vk-saved-empty-sub {
+  font-size: 12px;
+  color: rgba(26, 26, 26, 0.5);
+  line-height: 1.5;
+}
+
+.vk-saved-status {
+  font-size: 12px;
+  color: rgba(26, 26, 26, 0.5);
+  font-family: var(--vk-font-sans);
+  padding: 12px 4px;
 }

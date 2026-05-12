@@ -692,7 +692,9 @@ export default function LivePreview({ apiBase }: Props) {
       <div className='vk-preview-canvas'>
         <div className={gridClass}>
           {view !== 'mobile' && WebMockup}
-          {view !== 'web' && MobileMockup}
+          {view !== 'web' && (
+            <div className='vk-mobile-mount'>{MobileMockup}</div>
+          )}
         </div>
       </div>
 

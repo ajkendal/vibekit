@@ -42,6 +42,7 @@ export type Spacing = {
 export type Theme = {
   id?: string
   name?: string
+  description?: string
   logoUrl?: string | null
   colors?: Colors
   typography?: Typography
@@ -52,6 +53,7 @@ export type Theme = {
 export type ThemeRow = {
   id: string
   name?: string
+  description?: string
   created_at?: number | null
   [k: string]: unknown
 }

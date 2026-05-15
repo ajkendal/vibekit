@@ -1,10 +1,16 @@
 import { useState } from 'react'
 import DeleteModal from './DeleteModal'
+import { themeCssUrl, themePreviewUrl } from '../lib/api'
 
-type Row = { id: string; name?: string; created_at?: number | null }
+type Row = {
+  id: string
+  name?: string
+  description?: string
+  created_at?: number | null
+}
 
 type Props = {
-  apiBase: string
+  apiBase?: string
   themes: Row[]
   loading?: boolean
   err?: string | null
@@ -13,8 +19,25 @@ type Props = {
   onDelete?: (id: string) => void
 }
 
+/** "5 minutes ago", "2 days ago", or "May 12" for older. */
+function relativeTime(ms: number): string {
+  const now = Date.now()
+  const diff = ms - now
+  const abs = Math.abs(diff)
+  const rtf = new Intl.RelativeTimeFormat('en', { numeric: 'auto' })
+
+  if (abs < 60_000) return rtf.format(Math.round(diff / 1000), 'second')
+  if (abs < 3_600_000) return rtf.format(Math.round(diff / 60_000), 'minute')
+  if (abs < 86_400_000) return rtf.format(Math.round(diff / 3_600_000), 'hour')
+  if (abs < 7 * 86_400_000)
+    return rtf.format(Math.round(diff / 86_400_000), 'day')
+  return new Date(ms).toLocaleDateString('en', {
+    month: 'short',
+    day: 'numeric',
+  })
+}
+
 export default function SavedThemes({
-  apiBase,
   themes,
   loading,
   err,
@@ -62,12 +85,11 @@ export default function SavedThemes({
 
   async function handleDeleteConfirm() {
     if (!onDelete || !selectedTheme) return
-
-    setBusyId(selectedTheme.id)
+    const id = selectedTheme.id
+    setBusyId(id)
     closeDeleteModal()
-
     try {
-      await onDelete(selectedTheme.id)
+      await onDelete(id)
     } finally {
       setBusyId(null)
     }
@@ -75,8 +97,7 @@ export default function SavedThemes({
 
   async function copyCssUrl(id: string) {
     try {
-      const url = getCssUrl(id)
-      await navigator.clipboard.writeText(url)
+      await navigator.clipboard.writeText(themeCssUrl(id))
       setCopiedCssId(id)
       setTimeout(() => setCopiedCssId(null), 2000)
     } catch {
@@ -84,103 +105,84 @@ export default function SavedThemes({
     }
   }
 
-  function getCssUrl(id: string) {
-    // In development, use the local API server directly
-    if (
-      (location.hostname === 'localhost' ||
-        location.hostname === '127.0.0.1') &&
-      (apiBase === '/api' || !apiBase.startsWith('http'))
-    ) {
-      return `http://127.0.0.1:8787/themes/${id}/css`
-    }
-    return `${apiBase}/themes/${id}/css`
+  /* ───────── render branches ───────── */
+
+  if (loading) {
+    return <div className='vk-saved-status'>Loading…</div>
   }
 
-  function previewUrl(id: string) {
-    if (
-      (location.hostname === 'localhost' ||
-        location.hostname === '127.0.0.1') &&
-      (apiBase === '/api' || !apiBase.startsWith('http'))
-    ) {
-      return `http://127.0.0.1:8787/themes/${id}/preview`
-    }
-    return `${apiBase}/themes/${id}/preview`
+  if (err) {
+    return <span className='vk-brand-err'>{err}</span>
+  }
+
+  if (!themes || themes.length === 0) {
+    return (
+      <div className='vk-saved-empty'>
+        <div className='vk-saved-empty-title'>No themes saved yet</div>
+        <div className='vk-saved-empty-sub'>
+          Save your first theme to load it, share it, or duplicate it later.
+        </div>
+      </div>
+    )
   }
 
   return (
-    <section>
-      <strong>Saved Themes</strong>
-      {loading && <p style={{ marginTop: 8 }}>Loading…</p>}
-      {err && <p style={{ marginTop: 8, color: 'crimson' }}>{err}</p>}
-      {!loading && (!themes || themes.length === 0) && (
-        <p style={{ marginTop: 8, opacity: 0.7 }}>No themes yet</p>
-      )}
-
-      <div style={{ display: 'grid', gap: 10, marginTop: 10 }}>
-        {themes?.map((t) => {
+    <>
+      <div className='vk-saved-list'>
+        {themes.map((t) => {
           const busy = busyId === t.id
           const ts = t.created_at
             ? t.created_at > 1e12
               ? t.created_at
               : t.created_at * 1000
             : 0
-          const dt = ts ? new Date(ts).toLocaleString() : ''
+          const when = ts ? relativeTime(ts) : ''
+
           return (
-            <div
-              key={t.id}
-              style={{
-                border: '1px solid #e5e7eb',
-                borderRadius: 10,
-                padding: 12,
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'space-between',
-                gap: 12,
-                flexWrap: 'wrap',
-              }}
-            >
-              <div style={{ minWidth: 220 }}>
-                <div style={{ fontWeight: 600 }}>
+            <div key={t.id} className='vk-saved-card'>
+              <div className='vk-saved-head'>
+                <span className='vk-saved-title'>
                   {t.name || 'Untitled Theme'}
-                </div>
-                {dt && (
-                  <div style={{ fontSize: 12, opacity: 0.65 }}>Saved {dt}</div>
-                )}
-                <code style={{ fontSize: 11, opacity: 0.6 }}>{t.id}</code>
-              </div>
-              <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
+                </span>
                 <button
-                  className='btn'
+                  className='vk-btn vk-btn--primary vk-btn--sm'
                   disabled={busy}
                   onClick={() => load(t.id)}
                 >
-                  {busy ? 'Working…' : 'Load'}
+                  {busy ? 'Loading…' : 'Load'}
                 </button>
+              </div>
+              <div className='vk-saved-meta'>
+                {when ? `Saved ${when}` : ' '}
+              </div>
+              {t.description && (
+                <div className='vk-saved-desc'>{t.description}</div>
+              )}
+              <div className='vk-saved-actions'>
                 <button
-                  className='btn'
+                  className='vk-btn vk-btn--outline vk-btn--sm'
                   disabled={busy}
                   onClick={() => duplicate(t)}
                 >
-                  {busy ? 'Working…' : 'Duplicate'}
+                  Duplicate
                 </button>
                 <button
-                  className='btn'
+                  className='vk-btn vk-btn--outline vk-btn--sm'
                   disabled={busy}
                   onClick={() => copyCssUrl(t.id)}
                 >
-                  {copiedCssId === t.id ? 'Copied!' : 'Copy CSS URL'}
+                  {copiedCssId === t.id ? '✓ Copied' : 'Copy CSS'}
                 </button>
                 <a
-                  className='btn'
-                  href={previewUrl(t.id)}
+                  className='vk-btn vk-btn--outline vk-btn--sm'
+                  href={themePreviewUrl(t.id)}
                   target='_blank'
                   rel='noreferrer'
                 >
-                  Open Preview
+                  Preview ↗
                 </a>
                 <button
-                  className='btn'
-                  style={{ background: '#ef4444' }}
+                  className='vk-btn vk-btn--text-danger vk-btn--sm vk-saved-actions-end'
                   disabled={busy}
                   onClick={() =>
                     openDeleteModal(t.id, t.name || 'Untitled Theme')
@@ -200,6 +202,6 @@ export default function SavedThemes({
         onClose={closeDeleteModal}
         onConfirm={handleDeleteConfirm}
       />
-    </section>
+    </>
   )
 }

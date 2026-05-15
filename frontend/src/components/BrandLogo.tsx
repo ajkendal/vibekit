@@ -1,12 +1,21 @@
 import { useMemo, useState } from 'react'
+import { uploadLogo } from '../lib/api'
 
 type Props = {
   value?: string | null
   apiBase: string
   onChange: (url: string) => void
+  description?: string
+  onDescriptionChange?: (desc: string) => void
 }
 
-export default function BrandLogo({ value, apiBase, onChange }: Props) {
+export default function BrandLogo({
+  value,
+  apiBase,
+  onChange,
+  description,
+  onDescriptionChange,
+}: Props) {
   const [busy, setBusy] = useState(false)
   const [err, setErr] = useState<string | null>(null)
 
@@ -21,94 +30,101 @@ export default function BrandLogo({ value, apiBase, onChange }: Props) {
     setBusy(true)
     setErr(null)
     try {
-      const fd = new FormData()
-      fd.append('file', file)
-      const res = await fetch(`${apiBase}/uploads/logo`, {
-        method: 'POST',
-        body: fd,
-      })
-      if (!res.ok) throw new Error(`Upload failed: ${res.status}`)
-      const out = (await res.json()) as { url?: string }
-      if (!out?.url) throw new Error('Upload failed: bad response')
-      onChange(out.url) // e.g. "/uploads/<id>"
-    } catch (e: any) {
-      setErr(e.message || 'Upload failed')
+      const url = await uploadLogo(file)
+      onChange(url)
+    } catch (e: unknown) {
+      const msg = e instanceof Error ? e.message : 'Upload failed'
+      setErr(msg)
     } finally {
       setBusy(false)
     }
   }
 
+  function handleFile(e: React.ChangeEvent<HTMLInputElement>) {
+    const f = e.target.files?.[0]
+    if (f) onUploadLogo(f)
+    // Reset value so picking the same file again still fires onChange
+    e.target.value = ''
+  }
+
   return (
-    <section>
-      <strong>Brand Logo</strong>
+    <div className='vk-brand-field'>
+      <span className='vk-brand-field-label'>Logo</span>
+
       <div
-        style={{
-          display: 'flex',
-          alignItems: 'center',
-          gap: 12,
-          marginTop: 10,
-          flexWrap: 'wrap',
-        }}
+        className={`vk-brand-preview ${
+          !previewSrc ? 'vk-brand-preview-empty' : ''
+        }`}
       >
         {previewSrc ? (
           <img
             src={previewSrc}
-            alt='Logo'
-            style={{
-              width: 72,
-              height: 72,
-              objectFit: 'contain',
-              borderRadius: 12,
-              border: '1px solid #e5e7eb',
-            }}
+            alt='Brand logo preview'
+            className='vk-brand-preview-img'
           />
         ) : (
-          <div
-            style={{
-              width: 72,
-              height: 72,
-              borderRadius: 12,
-              border: '1px dashed #cbd5e1',
-              display: 'grid',
-              placeItems: 'center',
-              fontSize: 12,
-              color: '#64748b',
-            }}
-          >
-            no logo
+          <div className='vk-brand-empty-text'>
+            No logo yet
+            <span className='vk-brand-empty-sub'>
+              Upload a mark for your theme
+            </span>
           </div>
         )}
+        {busy && <div className='vk-brand-uploading'>Uploading…</div>}
+      </div>
 
-        <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+      <div className='vk-brand-actions'>
+        <label
+          className={`vk-btn vk-btn--primary vk-btn--sm ${
+            busy ? 'is-disabled' : ''
+          }`}
+          style={{ cursor: busy ? 'not-allowed' : 'pointer' }}
+        >
+          {previewSrc ? 'Replace' : 'Upload logo'}
           <input
             type='file'
-            accept='image/*'
-            onChange={(e) => {
-              const f = e.target.files?.[0]
-              if (f) onUploadLogo(f)
-            }}
+            accept='image/png,image/jpeg,image/svg+xml,image/webp'
+            onChange={handleFile}
             disabled={busy}
+            style={{ display: 'none' }}
           />
-
-          {previewSrc && (
-            <button
-              type='button'
-              className='btn'
-              onClick={() => onChange('')}
-              disabled={busy}
-              style={{ fontSize: '12px', padding: '4px 8px' }}
-            >
-              Remove Logo
-            </button>
-          )}
-        </div>
-
-        {busy && <span>Uploading…</span>}
-        {err && <span style={{ color: 'crimson' }}>{err}</span>}
+        </label>
+        {previewSrc && (
+          <button
+            type='button'
+            className='vk-btn vk-btn--text-danger vk-btn--sm'
+            onClick={() => onChange('')}
+            disabled={busy}
+          >
+            Remove
+          </button>
+        )}
       </div>
-      <small style={{ display: 'block', opacity: 0.7, marginTop: 6 }}>
-        PNG / JPG / SVG / WEBP supported.
-      </small>
-    </section>
+
+      <span className='vk-brand-hint'>
+        PNG, JPG, SVG, or WebP. Transparent backgrounds work best for both
+        light and dark surfaces.
+      </span>
+
+      {err && <span className='vk-brand-err'>{err}</span>}
+
+      {onDescriptionChange && (
+        <div className='vk-brand-field' style={{ marginTop: 18 }}>
+          <span className='vk-brand-field-label'>Description</span>
+          <textarea
+            className='vk-brand-name'
+            value={description ?? ''}
+            placeholder='A short one-line summary of this theme'
+            onChange={(e) => onDescriptionChange(e.target.value)}
+            rows={2}
+            maxLength={200}
+            style={{ resize: 'vertical', minHeight: 36, lineHeight: 1.4 }}
+          />
+          <span className='vk-brand-name-hint'>
+            Shows up in the saved themes list and on the public preview page.
+          </span>
+        </div>
+      )}
+    </div>
   )
 }

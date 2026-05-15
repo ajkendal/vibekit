@@ -1,26 +1,8 @@
-import { useEffect, useMemo, useState } from 'react'
+import { useEffect, useState } from 'react'
 import { useTheme } from '../store/theme'
+import { rgba, textOn } from '../lib/color'
 
-function hexToRgb(hex: string): { r: number; g: number; b: number } | null {
-  if (!hex || typeof hex !== 'string') return null
-  const m = hex.trim().match(/^#?([a-f\d]{3}|[a-f\d]{6})$/i)
-  if (!m) return null
-  let h = m[1]
-  if (h.length === 3)
-    h = h
-      .split('')
-      .map((c) => c + c)
-      .join('')
-  const num = parseInt(h, 16)
-  return { r: (num >> 16) & 255, g: (num >> 8) & 255, b: num & 255 }
-}
-
-function textOn(bg: string, fallback = '#ffffff'): string {
-  const rgb = hexToRgb(bg)
-  if (!rgb) return fallback
-  const yiq = (rgb.r * 299 + rgb.g * 587 + rgb.b * 114) / 1000
-  return yiq >= 186 ? '#111111' : '#ffffff'
-}
+/* ───────── helpers ───────── */
 
 function resolveLogoForUI(
   raw: string | null | undefined,
@@ -47,216 +29,694 @@ function resolveLogoForUI(
   return val
 }
 
+/* ───────── component ───────── */
+
+type View = 'both' | 'web' | 'mobile'
 type Props = { apiBase: string }
 
 export default function LivePreview({ apiBase }: Props) {
   const { theme } = useTheme() as { theme: any }
+  const [view, setView] = useState<View>('both')
 
   const colors = theme?.colors || {}
+  const radius = theme?.spacing?.borderRadius ?? 12
+  const t = theme?.typography || {}
+
+  const headerFamily = `'${t.headerFont || 'Inter'}', system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif`
+  const paragraphFamily = `'${t.paragraphFont || 'Inter'}', system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif`
+  const headerItalic = !!t.headerItalic
+  const paragraphItalic = !!t.paragraphItalic
+
+  // user-tunable header style (used on the hero text in each mockup)
+  const headerHero = {
+    fontFamily: headerFamily,
+    fontStyle: headerItalic ? 'italic' : 'normal',
+    fontWeight: (t.headerWeights?.[0] as number | undefined) ?? 700,
+    lineHeight: (t.headerLineHeight as number | undefined) ?? 1.15,
+    letterSpacing: `${(t.headerLetterSpacing as number | undefined) ?? -0.02}em`,
+  } as const
+
+  // simpler header style for sub-headings (size/weight comes from the mockup, family from user)
+  const fH = {
+    fontFamily: headerFamily,
+    fontStyle: headerItalic ? 'italic' : 'normal',
+  } as const
+  const fP = {
+    fontFamily: paragraphFamily,
+    fontStyle: paragraphItalic ? 'italic' : 'normal',
+  } as const
+
+  const primary = colors.primary || '#8338EC'
+  const secondary = colors.secondary || '#3A86FF'
+  const tertiary = colors.tertiary || '#FB5607'
+  const success = colors.success || '#06D6A0'
+  const warning = colors.warning || '#F4A261'
+  const danger = colors.danger || '#E63946'
+  const ink = colors.neutral_dark || '#1A1A1A'
+  const canvas = colors.neutral_light || '#FFFFFF'
+  const muted = colors.neutral_mid || '#6B7280'
+
+  const onPrimary = textOn(primary)
+  const onSecondary = textOn(secondary)
+
   const logoUrlResolved = resolveLogoForUI(theme?.logoUrl, apiBase)
-  const borderRadius = theme?.spacing?.borderRadius ?? 12
-
-  const headerFont = theme?.typography?.headerFont || 'Inter'
-  const headerWeight =
-    (theme?.typography?.headerWeights?.[0] as number | undefined) ?? 400
-  const headerItalic = !!theme?.typography?.headerItalic
-  const headerLH =
-    (theme?.typography?.headerLineHeight as number | undefined) ?? 1.25
-  const headerLS =
-    (theme?.typography?.headerLetterSpacing as number | undefined) ?? 0
-
-  const paragraphFont = theme?.typography?.paragraphFont || 'Inter'
-  const paragraphWeight =
-    (theme?.typography?.paragraphWeights?.[0] as number | undefined) ?? 400
-  const paragraphItalic = !!theme?.typography?.paragraphItalic
-  const paragraphLH =
-    (theme?.typography?.paragraphLineHeight as number | undefined) ?? 1.6
-  const paragraphLS =
-    (theme?.typography?.paragraphLetterSpacing as number | undefined) ?? 0
-
-  const bg = colors.neutral_light || '#ffffff'
-  const fg = colors.neutral_dark || '#000000'
-
   const [imgSrc, setImgSrc] = useState<string>(logoUrlResolved)
   useEffect(() => {
     setImgSrc(logoUrlResolved)
   }, [logoUrlResolved])
 
-  const chips = useMemo(
-    () =>
-      (
-        [
-          'neutral_mid',
-          'primary',
-          'secondary',
-          'tertiary',
-          'danger',
-          'warning',
-          'caution',
-          'success',
-        ] as const
-      ).map((k) => {
-        const bgc = colors[k] || '#9ca3af'
-        return { key: k, bg: bgc, fg: textOn(bgc) }
-      }),
-    [colors]
-  )
+  const themeName = theme?.name || 'Untitled'
+  const previewHref =
+    theme?.id ? `${apiBase}/themes/${theme.id}/preview` : '#'
 
-  const fallback = () => {
-    return (
+  /* ───────── WEB MOCKUP ───────── */
+  const WebMockup = (
+    <div
+      style={{
+        background: canvas,
+        borderRadius: 10,
+        overflow: 'hidden',
+        border: `0.5px solid ${rgba(ink, 0.08)}`,
+        color: ink,
+      }}
+    >
+      {/* browser chrome */}
       <div
         style={{
-          width: 72,
-          height: 72,
-          borderRadius: '6px',
-          border: '1px dashed #cbd5e1',
-          display: 'grid',
-          placeItems: 'center',
-          fontSize: 12,
-          color: '#64748b',
+          background: rgba(ink, 0.04),
+          padding: '7px 12px',
+          display: 'flex',
+          alignItems: 'center',
+          gap: 6,
+          borderBottom: `0.5px solid ${rgba(ink, 0.06)}`,
         }}
       >
-        no logo
-      </div>
-    )
-  }
-
-  return (
-    <section>
-      <strong>Live Preview</strong>
-      <div
-        style={{
-          marginTop: 8,
-          padding: 16,
-          borderRadius: `${borderRadius}px`,
-          background: bg,
-          color: fg,
-          border: '1px solid #e5e7eb',
-        }}
-      >
+        <div style={{ width: 7, height: 7, background: rgba(ink, 0.18), borderRadius: '50%' }} />
+        <div style={{ width: 7, height: 7, background: rgba(ink, 0.18), borderRadius: '50%' }} />
+        <div style={{ width: 7, height: 7, background: rgba(ink, 0.18), borderRadius: '50%' }} />
         <div
           style={{
-            display: 'flex',
-            alignItems: 'center',
-            gap: 12,
-            marginBottom: 12,
+            fontFamily: 'ui-monospace, SFMono-Regular, monospace',
+            fontSize: 10,
+            color: rgba(ink, 0.45),
+            marginLeft: 8,
           }}
         >
-          {imgSrc && imgSrc !== '' ? (
-            <img
-              src={imgSrc}
-              alt='logo'
-              style={{ height: 28 }}
-              onError={() => {
-                console.log('Image failed to load:', imgSrc)
-                setImgSrc('')
+          app.{(themeName || 'untitled').toString().toLowerCase().replace(/\s+/g, '-')}.com
+        </div>
+      </div>
+
+      {/* top nav */}
+      <div
+        style={{
+          padding: '11px 18px',
+          display: 'flex',
+          justifyContent: 'space-between',
+          alignItems: 'center',
+          borderBottom: `0.5px solid ${rgba(ink, 0.06)}`,
+        }}
+      >
+        <div style={{ display: 'flex', gap: 18, alignItems: 'center' }}>
+          <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
+            {imgSrc ? (
+              <img
+                src={imgSrc}
+                alt=''
+                style={{ width: 20, height: 20, objectFit: 'contain' }}
+                onError={() => setImgSrc('')}
+              />
+            ) : (
+              <div
+                style={{
+                  width: 20,
+                  height: 20,
+                  background: primary,
+                  borderRadius: Math.min(radius, 6),
+                }}
+              />
+            )}
+            <div
+              style={{
+                fontSize: 13,
+                fontWeight: 700,
+                color: ink,
+                letterSpacing: '-0.02em',
+                ...fH,
               }}
-            />
-          ) : (
-            fallback()
-          )}
-          <span
+            >
+              {themeName}
+            </div>
+          </div>
+          <div
             style={{
-              color: colors.neutral_mid || '#6b7280',
-              fontSize: 12,
+              fontSize: 11,
+              color: primary,
+              fontWeight: 600,
+              paddingBottom: 2,
+              borderBottom: `1.5px solid ${primary}`,
             }}
           >
-            {theme?.name || 'Untitled Theme'}
-          </span>
+            Dashboard
+          </div>
+          <div style={{ fontSize: 11, color: rgba(ink, 0.55), fontWeight: 500 }}>Reports</div>
+          <div style={{ fontSize: 11, color: rgba(ink, 0.55), fontWeight: 500 }}>Settings</div>
         </div>
+        <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
+          <div
+            style={{
+              padding: '5px 12px',
+              background: primary,
+              color: onPrimary,
+              borderRadius: Math.min(radius, 8),
+              fontSize: 11,
+              fontWeight: 600,
+              ...fH,
+            }}
+          >
+            + New
+          </div>
+          <div
+            style={{
+              width: 24,
+              height: 24,
+              background: secondary,
+              borderRadius: '50%',
+              color: onSecondary,
+              fontSize: 10,
+              fontWeight: 700,
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+            }}
+          >
+            M
+          </div>
+        </div>
+      </div>
 
-        <h2
-          style={{
-            margin: '8px 0',
-            fontFamily: `'${headerFont}', system-ui, -apple-system, Segoe UI, Roboto, sans-serif`,
-            fontWeight: headerWeight,
-            fontStyle: headerItalic ? 'italic' : 'normal',
-            lineHeight: headerLH,
-            letterSpacing: `${headerLS}em`,
-          }}
-        >
-          The Quick Brown Fox
-        </h2>
-
-        <p
-          style={{
-            margin: '6px 0 12px',
-            fontFamily: `'${paragraphFont}', system-ui, -apple-system, Segoe UI, Roboto, sans-serif`,
-            fontWeight: paragraphWeight,
-            fontStyle: paragraphItalic ? 'italic' : 'normal',
-            lineHeight: paragraphLH,
-            letterSpacing: `${paragraphLS}em`,
-          }}
-        >
-          Lorem ipsum dolor sit amet, consectetur adipiscing elit. Pellentesque
-          habitant morbi tristique senectus et netus et malesuada fames ac
-          turpis egestas.
-        </p>
-
+      {/* content area: sidebar + main */}
+      <div style={{ display: 'grid', gridTemplateColumns: '110px 1fr', minHeight: 280 }}>
+        {/* sidebar */}
         <div
           style={{
+            background: rgba(ink, 0.025),
+            padding: '14px 10px',
             display: 'flex',
-            gap: 8,
-            flexWrap: 'wrap',
-            marginBottom: 12,
+            flexDirection: 'column',
+            gap: 4,
+            borderRight: `0.5px solid ${rgba(ink, 0.06)}`,
           }}
         >
-          {chips.map((c) => (
-            <span
-              key={c.key}
+          <div
+            style={{
+              padding: '6px 10px',
+              background: rgba(primary, 0.12),
+              color: primary,
+              borderRadius: Math.min(radius, 8),
+              fontSize: 11,
+              fontWeight: 600,
+              ...fP,
+            }}
+          >
+            Overview
+          </div>
+          {['Customers', 'Orders', 'Products', 'Analytics'].map((label) => (
+            <div
+              key={label}
               style={{
                 padding: '6px 10px',
-                borderRadius: `${borderRadius}px`,
-                fontSize: 12,
-                background: c.bg,
-                color: c.fg,
-                border: '1px solid rgba(0,0,0,.06)',
-                textTransform: 'capitalize',
+                color: rgba(ink, 0.7),
+                fontSize: 11,
+                fontWeight: 500,
+                ...fP,
               }}
-              title={c.key}
             >
-              {c.key}
-            </span>
+              {label}
+            </div>
           ))}
         </div>
 
-        <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
-          <button
+        {/* main content */}
+        <div style={{ padding: '16px 20px' }}>
+          <div
             style={{
-              padding: '8px 12px',
-              borderRadius: `${borderRadius}px`,
-              border: 'none',
-              background: colors.primary || '#2563eb',
-              color: textOn(colors.primary || '#2563eb'),
-              cursor: 'pointer',
+              display: 'flex',
+              justifyContent: 'space-between',
+              alignItems: 'baseline',
+              marginBottom: 12,
             }}
           >
-            Primary Button
-          </button>
-          <button
+            <h1
+              style={{
+                fontSize: 20,
+                margin: 0,
+                color: ink,
+                ...headerHero,
+              }}
+            >
+              Good morning
+            </h1>
+            <div style={{ fontSize: 10, color: rgba(ink, 0.5), ...fP }}>May 5, 2026</div>
+          </div>
+
+          {/* stat cards */}
+          <div
             style={{
-              padding: '8px 12px',
-              borderRadius: `${borderRadius}px`,
-              border: `1px solid ${colors.neutral_mid || '#6b7280'}`,
-              background: 'transparent',
-              color: colors.neutral_mid || '#6b7280',
-              cursor: 'pointer',
+              display: 'grid',
+              gridTemplateColumns: '1fr 1fr 1fr 1fr',
+              gap: 8,
+              marginBottom: 12,
             }}
           >
-            Secondary Button
-          </button>
-          <a
-            href='#'
-            onClick={(e) => e.preventDefault()}
+            {[
+              { label: 'Revenue', val: '$12,840', delta: '↗ 12%', color: success },
+              { label: 'Customers', val: '3,492', delta: '↗ 4%', color: success },
+              { label: 'Bounce', val: '24.1%', delta: '↘ 3%', color: danger },
+              { label: 'Avg session', val: '3:42', delta: '— flat', color: muted },
+            ].map((s) => (
+              <div
+                key={s.label}
+                style={{
+                  background: rgba(ink, 0.03),
+                  borderRadius: Math.min(radius, 8),
+                  padding: 10,
+                }}
+              >
+                <div style={{ fontSize: 9, color: rgba(ink, 0.6), fontWeight: 500, ...fP }}>
+                  {s.label}
+                </div>
+                <div
+                  style={{
+                    fontSize: 16,
+                    fontWeight: 700,
+                    color: ink,
+                    lineHeight: 1.1,
+                    marginTop: 2,
+                    ...fH,
+                  }}
+                >
+                  {s.val}
+                </div>
+                <div style={{ fontSize: 9, color: s.color, fontWeight: 600, marginTop: 3, ...fP }}>
+                  {s.delta}
+                </div>
+              </div>
+            ))}
+          </div>
+
+          {/* table */}
+          <div
             style={{
-              alignSelf: 'center',
-              color: colors.secondary || '#6b7280',
-              textDecoration: 'underline',
+              background: canvas,
+              border: `0.5px solid ${rgba(ink, 0.08)}`,
+              borderRadius: Math.min(radius, 8),
+              overflow: 'hidden',
             }}
           >
-            Link example
-          </a>
+            <div
+              style={{
+                display: 'grid',
+                gridTemplateColumns: '1fr 80px 80px',
+                padding: '7px 12px',
+                background: rgba(ink, 0.03),
+                fontSize: 9,
+                fontWeight: 600,
+                color: rgba(ink, 0.55),
+                textTransform: 'uppercase',
+                letterSpacing: '0.05em',
+                ...fP,
+              }}
+            >
+              <div>Customer</div>
+              <div>Amount</div>
+              <div>Status</div>
+            </div>
+            {[
+              { name: 'Sara Chen', amt: '$240.00', label: 'paid', color: success },
+              { name: 'Jordan Park', amt: '$48.50', label: 'pending', color: warning },
+              { name: 'Mike Alvarez', amt: '$120.00', label: 'failed', color: danger },
+            ].map((r) => (
+              <div
+                key={r.name}
+                style={{
+                  display: 'grid',
+                  gridTemplateColumns: '1fr 80px 80px',
+                  padding: '8px 12px',
+                  borderTop: `0.5px solid ${rgba(ink, 0.06)}`,
+                  fontSize: 11,
+                  alignItems: 'center',
+                  ...fP,
+                }}
+              >
+                <div style={{ fontWeight: 600, color: ink }}>{r.name}</div>
+                <div style={{ color: ink }}>{r.amt}</div>
+                <div>
+                  <span
+                    style={{
+                      padding: '2px 8px',
+                      background: rgba(r.color, 0.15),
+                      color: r.color,
+                      borderRadius: Math.min(radius, 12),
+                      fontSize: 9,
+                      fontWeight: 700,
+                      letterSpacing: '0.02em',
+                    }}
+                  >
+                    {r.label}
+                  </span>
+                </div>
+              </div>
+            ))}
+          </div>
         </div>
+      </div>
+    </div>
+  )
+
+  /* ───────── MOBILE MOCKUP ───────── */
+  const MobileMockup = (
+    <div
+      style={{
+        background: ink,
+        borderRadius: 28,
+        padding: 6,
+        width: 220,
+      }}
+    >
+      <div
+        style={{
+          background: rgba(ink, 0.05),
+          borderRadius: 24,
+          padding: '14px 12px 0',
+          minHeight: 410,
+          display: 'flex',
+          flexDirection: 'column',
+          color: ink,
+        }}
+      >
+        {/* status bar */}
+        <div
+          style={{
+            display: 'flex',
+            justifyContent: 'space-between',
+            fontSize: 9,
+            color: ink,
+            marginBottom: 14,
+            fontFamily: 'ui-monospace, SFMono-Regular, monospace',
+            fontWeight: 600,
+          }}
+        >
+          <span>9:41</span>
+          <span>●●●  ▮</span>
+        </div>
+
+        {/* header */}
+        <div
+          style={{
+            display: 'flex',
+            justifyContent: 'space-between',
+            alignItems: 'center',
+            marginBottom: 14,
+          }}
+        >
+          <div>
+            <div
+              style={{
+                fontSize: 16,
+                color: ink,
+                ...headerHero,
+              }}
+            >
+              Hello, Maya
+            </div>
+            <div style={{ fontSize: 10, color: rgba(ink, 0.55), marginTop: 2, ...fP }}>
+              Tuesday, May 5
+            </div>
+          </div>
+          <div
+            style={{
+              position: 'relative',
+              width: 30,
+              height: 30,
+              background: canvas,
+              borderRadius: '50%',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+            }}
+          >
+            <div
+              style={{
+                width: 7,
+                height: 7,
+                background: primary,
+                borderRadius: '50%',
+                position: 'absolute',
+                top: 5,
+                right: 5,
+              }}
+            />
+            <div style={{ fontSize: 13, color: ink }}>♡</div>
+          </div>
+        </div>
+
+        {/* hero balance card with primary */}
+        <div
+          style={{
+            background: primary,
+            borderRadius: Math.min(radius + 2, 16),
+            padding: 14,
+            color: onPrimary,
+            marginBottom: 10,
+          }}
+        >
+          <div style={{ fontSize: 10, opacity: 0.85, fontWeight: 500, marginBottom: 4, ...fP }}>
+            Total balance
+          </div>
+          <div
+            style={{
+              fontSize: 26,
+              ...headerHero,
+              color: onPrimary,
+            }}
+          >
+            $4,820.18
+          </div>
+          <div style={{ display: 'flex', gap: 6, marginTop: 12 }}>
+            <div
+              style={{
+                padding: '5px 10px',
+                background: 'rgba(255,255,255,0.22)',
+                borderRadius: Math.min(radius, 14),
+                fontSize: 9,
+                fontWeight: 600,
+                ...fP,
+              }}
+            >
+              Send
+            </div>
+            <div
+              style={{
+                padding: '5px 10px',
+                background: 'rgba(255,255,255,0.22)',
+                borderRadius: Math.min(radius, 14),
+                fontSize: 9,
+                fontWeight: 600,
+                ...fP,
+              }}
+            >
+              Top up
+            </div>
+          </div>
+        </div>
+
+        {/* secondary + tertiary stats */}
+        <div
+          style={{
+            display: 'grid',
+            gridTemplateColumns: '1fr 1fr',
+            gap: 6,
+            marginBottom: 12,
+          }}
+        >
+          <div
+            style={{
+              background: rgba(secondary, 0.14),
+              borderRadius: Math.min(radius, 12),
+              padding: 10,
+            }}
+          >
+            <div style={{ fontSize: 9, color: rgba(ink, 0.6), fontWeight: 500, ...fP }}>Saved</div>
+            <div
+              style={{
+                fontSize: 14,
+                color: secondary,
+                lineHeight: 1.1,
+                marginTop: 2,
+                ...fH,
+                fontWeight: 700,
+              }}
+            >
+              $1,240
+            </div>
+          </div>
+          <div
+            style={{
+              background: rgba(tertiary, 0.14),
+              borderRadius: Math.min(radius, 12),
+              padding: 10,
+            }}
+          >
+            <div style={{ fontSize: 9, color: rgba(ink, 0.6), fontWeight: 500, ...fP }}>Spent</div>
+            <div
+              style={{
+                fontSize: 14,
+                color: tertiary,
+                lineHeight: 1.1,
+                marginTop: 2,
+                ...fH,
+                fontWeight: 700,
+              }}
+            >
+              $680
+            </div>
+          </div>
+        </div>
+
+        <div
+          style={{
+            fontSize: 9,
+            color: rgba(ink, 0.55),
+            fontWeight: 600,
+            textTransform: 'uppercase',
+            letterSpacing: '0.05em',
+            marginBottom: 6,
+            ...fP,
+          }}
+        >
+          Recent
+        </div>
+
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 4, flex: 1 }}>
+          {[
+            { name: 'Spotify', sub: 'Subscription', amt: '−$4.99', color: danger },
+            { name: 'Refund', sub: 'From Acme Inc.', amt: '+$24.00', color: success },
+            { name: 'Coffee', sub: 'Today, 8:14am', amt: '−$5.20', color: ink },
+          ].map((it) => (
+            <div
+              key={it.name}
+              style={{
+                display: 'flex',
+                justifyContent: 'space-between',
+                padding: '8px 10px',
+                background: canvas,
+                borderRadius: Math.min(radius, 10),
+                alignItems: 'center',
+              }}
+            >
+              <div>
+                <div
+                  style={{
+                    fontSize: 10,
+                    fontWeight: 600,
+                    color: ink,
+                    lineHeight: 1.2,
+                    ...fP,
+                  }}
+                >
+                  {it.name}
+                </div>
+                <div style={{ fontSize: 9, color: rgba(ink, 0.5), ...fP }}>{it.sub}</div>
+              </div>
+              <div style={{ fontSize: 10, fontWeight: 700, color: it.color, ...fP }}>{it.amt}</div>
+            </div>
+          ))}
+        </div>
+
+        {/* bottom nav */}
+        <div
+          style={{
+            display: 'flex',
+            justifyContent: 'space-around',
+            alignItems: 'center',
+            padding: '12px 0',
+            borderTop: `0.5px solid ${rgba(ink, 0.08)}`,
+            margin: '10px -12px 0',
+          }}
+        >
+          <div style={{ width: 18, height: 3, background: primary, borderRadius: 2 }} />
+          <div style={{ width: 5, height: 5, background: rgba(ink, 0.25), borderRadius: '50%' }} />
+          <div style={{ width: 5, height: 5, background: rgba(ink, 0.25), borderRadius: '50%' }} />
+          <div style={{ width: 5, height: 5, background: rgba(ink, 0.25), borderRadius: '50%' }} />
+        </div>
+      </div>
+    </div>
+  )
+
+  const gridClass =
+    view === 'web'
+      ? 'vk-preview-grid vk-preview-grid--web-only'
+      : view === 'mobile'
+      ? 'vk-preview-grid vk-preview-grid--mobile-only'
+      : 'vk-preview-grid'
+
+  return (
+    <section className='vk-section'>
+      <div className='vk-section-head'>
+        <div>
+          <div className='vk-eyebrow'>Live preview</div>
+          <h2 className='vk-section-title'>Your theme, in context</h2>
+        </div>
+        <div className='vk-tabs'>
+          <button
+            className={`vk-tab ${view === 'both' ? 'vk-tab--active' : ''}`}
+            onClick={() => setView('both')}
+          >
+            Both
+          </button>
+          <button
+            className={`vk-tab ${view === 'web' ? 'vk-tab--active' : ''}`}
+            onClick={() => setView('web')}
+          >
+            Web
+          </button>
+          <button
+            className={`vk-tab ${view === 'mobile' ? 'vk-tab--active' : ''}`}
+            onClick={() => setView('mobile')}
+          >
+            Mobile
+          </button>
+        </div>
+      </div>
+
+      <div className='vk-preview-canvas'>
+        <div className={gridClass}>
+          {view !== 'mobile' && WebMockup}
+          {view !== 'web' && (
+            <div className='vk-mobile-mount'>{MobileMockup}</div>
+          )}
+        </div>
+      </div>
+
+      <div className='vk-preview-footer'>
+        <div>
+          <span className='vk-pulse' />
+          <span>Updates as you edit</span>
+        </div>
+        {theme?.id ? (
+          <a
+            href={previewHref}
+            target='_blank'
+            rel='noreferrer'
+            className='vk-preview-link'
+          >
+            Open in /preview ↗
+          </a>
+        ) : (
+          <span className='vk-preview-link' style={{ opacity: 0.4 }}>
+            Save theme to share preview
+          </span>
+        )}
       </div>
     </section>
   )

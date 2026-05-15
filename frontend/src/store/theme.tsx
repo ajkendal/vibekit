@@ -1,9 +1,22 @@
-import React, { createContext, useContext, useMemo, useState } from 'react'
+import {
+  createContext,
+  useContext,
+  useMemo,
+  useState,
+  type Dispatch,
+  type ReactNode,
+  type SetStateAction,
+} from 'react'
+import type { Theme } from '../types/theme'
+import {
+  COLOR_DEFAULTS,
+  TYPOGRAPHY_DEFAULTS,
+  SPACING_DEFAULTS,
+} from '../lib/theme'
 
-type Theme = any
 type ThemeCtxValue = {
   theme: Theme
-  setTheme: React.Dispatch<React.SetStateAction<Theme>>
+  setTheme: Dispatch<SetStateAction<Theme>>
 }
 
 const ThemeCtx = createContext<ThemeCtxValue | null>(null)
@@ -12,42 +25,29 @@ const INITIAL_THEME: Theme = {
   id: undefined,
   name: '',
   logoUrl: null,
-  colors: {
-    neutral_light: '#ffffff',
-    neutral_mid: '#6b7280',
-    neutral_dark: '#000000',
-    primary: '#2563eb',
-    secondary: '#3b82f6',
-    tertiary: '#9333ea',
-    warning: '#f59e0b',
-    danger: '#ef4444',
-    caution: '#f97316',
-    success: '#10b981',
-  },
+  colors: { ...COLOR_DEFAULTS },
   typography: {
-    headerFont: 'Inter',
-    headerWeights: [400],
-    headerItalic: false,
-    headerLineHeight: 1.25,
-    headerLetterSpacing: 0,
+    headerFont: TYPOGRAPHY_DEFAULTS.headerFont,
+    headerWeights: [TYPOGRAPHY_DEFAULTS.headerWeight],
+    headerItalic: TYPOGRAPHY_DEFAULTS.headerItalic,
+    headerLineHeight: TYPOGRAPHY_DEFAULTS.headerLineHeight,
+    headerLetterSpacing: TYPOGRAPHY_DEFAULTS.headerLetterSpacing,
     paragraphFont: 'Roboto',
-    paragraphWeights: [400],
-    paragraphItalic: false,
-    paragraphLineHeight: 1.6,
-    paragraphLetterSpacing: 0,
+    paragraphWeights: [TYPOGRAPHY_DEFAULTS.paragraphWeight],
+    paragraphItalic: TYPOGRAPHY_DEFAULTS.paragraphItalic,
+    paragraphLineHeight: TYPOGRAPHY_DEFAULTS.paragraphLineHeight,
+    paragraphLetterSpacing: TYPOGRAPHY_DEFAULTS.paragraphLetterSpacing,
   },
-  spacing: {
-    borderRadius: 8,
-  },
+  spacing: { ...SPACING_DEFAULTS },
 }
 
-export function ThemeProvider({ children }: { children: React.ReactNode }) {
+export function ThemeProvider({ children }: { children: ReactNode }) {
   const [theme, setTheme] = useState<Theme>(INITIAL_THEME)
   const value = useMemo(() => ({ theme, setTheme }), [theme])
   return <ThemeCtx.Provider value={value}>{children}</ThemeCtx.Provider>
 }
 
-export function useTheme() {
+export function useTheme(): ThemeCtxValue {
   const ctx = useContext(ThemeCtx)
   if (!ctx) throw new Error('useTheme must be used within <ThemeProvider>')
   return ctx

@@ -5,5 +5,5 @@
   <rect x="35" y="24" width="10" height="40" rx="2" fill="#FF006E"/>
   <rect x="47" y="28" width="10" height="40" rx="2" fill="#8338EC"/>
   <rect x="59" y="32" width="10" height="40" rx="2" fill="#3A86FF"/>
-  <text x="84" y="56" font-family="Inter, system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif" font-size="36" font-weight="500" fill="#1A1A1A" letter-spacing="-1.08">VibeKit</text>
+  <text x="84" y="56" font-family="Inter, system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif" font-size="36" font-weight="500" fill="#FAF7F2" letter-spacing="-1.08">VibeKit</text>
 </svg>

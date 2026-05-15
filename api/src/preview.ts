@@ -98,6 +98,238 @@ function renderColorGroups(theme: AnyTheme): string {
   }).join('')
 }
 
+function renderWebMockup(theme: AnyTheme): string {
+  const radius = theme.spacing?.borderRadius
+  const radiusPx = typeof radius === 'number' ? `${Math.min(radius, 10)}px` : '8px'
+  const radiusSm = typeof radius === 'number' ? `${Math.min(radius, 6)}px` : '6px'
+  const radiusPill =
+    typeof radius === 'number' ? `${Math.min(radius, 12)}px` : '12px'
+
+  // Colors used in the mockup, with sane fallbacks
+  const bg = 'var(--color-neutral-light, #FFFFFF)'
+  const fg = 'var(--color-neutral-dark, #1A1A1A)'
+  const primary = 'var(--color-primary, #2563eb)'
+  const secondary = 'var(--color-secondary, #3b82f6)'
+  const success = 'var(--color-success, #10b981)'
+  const warning = 'var(--color-warning, #f59e0b)'
+  const danger = 'var(--color-danger, #ef4444)'
+  const muted = `color-mix(in srgb, ${fg} 4%, transparent)`
+  const hairline = `color-mix(in srgb, ${fg} 7%, transparent)`
+
+  return `
+    <div class="demo-app-frame" style="background:${bg}; color:${fg}; border-radius:${radiusPx}; overflow:hidden; border:0.5px solid ${hairline};">
+      <!-- browser chrome -->
+      <div style="background:${muted}; padding:8px 12px; display:flex; align-items:center; gap:6px; border-bottom:0.5px solid ${hairline};">
+        <span style="width:7px; height:7px; background:color-mix(in srgb, ${fg} 18%, transparent); border-radius:50%;"></span>
+        <span style="width:7px; height:7px; background:color-mix(in srgb, ${fg} 18%, transparent); border-radius:50%;"></span>
+        <span style="width:7px; height:7px; background:color-mix(in srgb, ${fg} 18%, transparent); border-radius:50%;"></span>
+        <span style="font-family: var(--vk-font-mono); font-size:10px; color:color-mix(in srgb, ${fg} 45%, transparent); margin-left:8px;">app.${escapeHtml(
+          (theme.name || 'untitled').toString().toLowerCase().replace(/\s+/g, '-')
+        )}.com</span>
+      </div>
+
+      <!-- top nav -->
+      <div style="padding:12px 18px; display:flex; justify-content:space-between; align-items:center; border-bottom:0.5px solid ${hairline};">
+        <div style="display:flex; gap:18px; align-items:center;">
+          <div style="display:flex; gap:8px; align-items:center;">
+            <span style="width:18px; height:18px; background:${primary}; border-radius:${radiusSm};"></span>
+            <span style="font-family: var(--font-header, var(--vk-font-sans)); font-size:13px; font-weight:700; letter-spacing:-0.02em;">${escapeHtml(
+              theme.name || 'Acme'
+            )}</span>
+          </div>
+          <span style="font-size:11px; color:${primary}; font-weight:600; padding-bottom:2px; border-bottom:1.5px solid ${primary};">Dashboard</span>
+          <span style="font-size:11px; color:color-mix(in srgb, ${fg} 55%, transparent); font-weight:500;">Reports</span>
+          <span style="font-size:11px; color:color-mix(in srgb, ${fg} 55%, transparent); font-weight:500;">Settings</span>
+        </div>
+        <div style="display:flex; gap:8px; align-items:center;">
+          <span style="padding:5px 12px; background:${primary}; color:var(--color-neutral-light, #fff); border-radius:${radiusSm}; font-size:11px; font-weight:600; font-family: var(--font-header, var(--vk-font-sans));">+ New</span>
+          <span style="width:24px; height:24px; background:${secondary}; border-radius:50%; color:var(--color-neutral-light, #fff); font-size:10px; font-weight:700; display:inline-flex; align-items:center; justify-content:center;">M</span>
+        </div>
+      </div>
+
+      <!-- content -->
+      <div style="display:grid; grid-template-columns:120px minmax(0, 1fr); min-height:260px;">
+        <div style="background:color-mix(in srgb, ${fg} 3%, transparent); padding:14px 10px; display:flex; flex-direction:column; gap:4px; border-right:0.5px solid ${hairline};">
+          <span style="padding:6px 10px; background:color-mix(in srgb, ${primary} 12%, transparent); color:${primary}; border-radius:${radiusSm}; font-size:11px; font-weight:600;">Overview</span>
+          <span style="padding:6px 10px; color:color-mix(in srgb, ${fg} 70%, transparent); font-size:11px; font-weight:500;">Customers</span>
+          <span style="padding:6px 10px; color:color-mix(in srgb, ${fg} 70%, transparent); font-size:11px; font-weight:500;">Orders</span>
+          <span style="padding:6px 10px; color:color-mix(in srgb, ${fg} 70%, transparent); font-size:11px; font-weight:500;">Products</span>
+        </div>
+        <div style="padding:16px 20px;">
+          <div style="display:flex; justify-content:space-between; align-items:baseline; margin-bottom:12px;">
+            <h3 style="font-family: var(--font-header, var(--vk-font-sans)); font-size:20px; margin:0; font-weight:700; letter-spacing:-0.03em; line-height:1.1;">Good morning</h3>
+            <span style="font-size:10px; color:color-mix(in srgb, ${fg} 50%, transparent);">May 5, 2026</span>
+          </div>
+          <div style="display:grid; grid-template-columns:repeat(4, minmax(0, 1fr)); gap:8px; margin-bottom:12px;">
+            ${renderStatCard('Revenue', '$12,840', '↗ 12%', success, muted, fg)}
+            ${renderStatCard('Customers', '3,492', '↗ 4%', success, muted, fg)}
+            ${renderStatCard('Bounce', '24.1%', '↘ 3%', danger, muted, fg)}
+            ${renderStatCard('Avg session', '3:42', '— flat', `color-mix(in srgb, ${fg} 50%, transparent)`, muted, fg)}
+          </div>
+          <div style="background:${bg}; border:0.5px solid ${hairline}; border-radius:${radiusSm}; overflow:hidden;">
+            <div style="display:grid; grid-template-columns:minmax(0, 1fr) 80px 80px; padding:7px 12px; background:color-mix(in srgb, ${fg} 3%, transparent); font-size:9px; font-weight:600; color:color-mix(in srgb, ${fg} 55%, transparent); text-transform:uppercase; letter-spacing:0.05em;">
+              <span>Customer</span><span>Amount</span><span>Status</span>
+            </div>
+            ${renderTableRow('Sara Chen', '$240.00', 'paid', success, hairline, fg, radiusPill)}
+            ${renderTableRow('Jordan Park', '$48.50', 'pending', warning, hairline, fg, radiusPill)}
+            ${renderTableRow('Mike Alvarez', '$120.00', 'failed', danger, hairline, fg, radiusPill)}
+          </div>
+        </div>
+      </div>
+    </div>
+  `
+}
+
+function renderStatCard(
+  label: string,
+  value: string,
+  delta: string,
+  deltaColor: string,
+  bg: string,
+  fg: string
+): string {
+  return `
+    <div style="background:${bg}; border-radius:8px; padding:10px;">
+      <div style="font-size:9px; color:color-mix(in srgb, ${fg} 60%, transparent); font-weight:500;">${escapeHtml(
+    label
+  )}</div>
+      <div style="font-family: var(--font-header, var(--vk-font-sans)); font-size:16px; font-weight:700; letter-spacing:-0.02em; line-height:1.1; margin-top:2px;">${escapeHtml(
+    value
+  )}</div>
+      <div style="font-size:9px; color:${deltaColor}; font-weight:600; margin-top:3px;">${escapeHtml(
+    delta
+  )}</div>
+    </div>
+  `
+}
+
+function renderTableRow(
+  name: string,
+  amount: string,
+  status: string,
+  statusColor: string,
+  hairline: string,
+  fg: string,
+  pillRadius: string
+): string {
+  return `
+    <div style="display:grid; grid-template-columns:minmax(0, 1fr) 80px 80px; padding:8px 12px; border-top:0.5px solid ${hairline}; font-size:11px; align-items:center;">
+      <span style="font-weight:600;">${escapeHtml(name)}</span>
+      <span>${escapeHtml(amount)}</span>
+      <span><span style="padding:2px 8px; background:color-mix(in srgb, ${statusColor} 15%, transparent); color:${statusColor}; border-radius:${pillRadius}; font-size:9px; font-weight:700; letter-spacing:0.02em;">${escapeHtml(
+    status
+  )}</span></span>
+    </div>
+  `
+}
+
+function renderMobileMockup(theme: AnyTheme): string {
+  const radius = theme.spacing?.borderRadius
+  const radiusCard =
+    typeof radius === 'number' ? `${Math.min(radius + 2, 16)}px` : '14px'
+  const radiusItem =
+    typeof radius === 'number' ? `${Math.min(radius, 10)}px` : '8px'
+  const radiusPill =
+    typeof radius === 'number' ? `${Math.min(radius, 14)}px` : '14px'
+
+  const bg = 'var(--color-neutral-light, #FFFFFF)'
+  const fg = 'var(--color-neutral-dark, #1A1A1A)'
+  const primary = 'var(--color-primary, #2563eb)'
+  const secondary = 'var(--color-secondary, #3b82f6)'
+  const tertiary = 'var(--color-tertiary, #9333ea)'
+  const success = 'var(--color-success, #10b981)'
+  const danger = 'var(--color-danger, #ef4444)'
+  const phoneBg = `color-mix(in srgb, ${fg} 5%, transparent)`
+  const hairline = `color-mix(in srgb, ${fg} 7%, transparent)`
+
+  return `
+    <div style="background:${fg}; border-radius:28px; padding:6px;">
+      <div style="background:${phoneBg}; border-radius:24px; padding:14px 12px 0; min-height:440px; display:flex; flex-direction:column;">
+        <!-- status bar -->
+        <div style="display:flex; justify-content:space-between; font-family: var(--vk-font-mono); font-size:9px; color:${fg}; font-weight:600; margin-bottom:14px;">
+          <span>9:41</span><span>●●●  ▮</span>
+        </div>
+
+        <!-- header -->
+        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:14px;">
+          <div>
+            <div style="font-family: var(--font-header, var(--vk-font-sans)); font-size:16px; font-weight:700; letter-spacing:-0.02em; line-height:1;">Hello, Maya</div>
+            <div style="font-size:10px; color:color-mix(in srgb, ${fg} 55%, transparent); margin-top:2px;">Tuesday, May 5</div>
+          </div>
+          <div style="position:relative; width:30px; height:30px; background:${bg}; border-radius:50%; display:flex; align-items:center; justify-content:center;">
+            <span style="width:7px; height:7px; background:${primary}; border-radius:50%; position:absolute; top:5px; right:5px;"></span>
+            <span style="font-size:13px;">♡</span>
+          </div>
+        </div>
+
+        <!-- balance card with primary -->
+        <div style="background:${primary}; color:var(--color-neutral-light, #fff); border-radius:${radiusCard}; padding:14px; margin-bottom:10px;">
+          <div style="font-size:10px; opacity:0.85; font-weight:500; margin-bottom:4px;">Total balance</div>
+          <div style="font-family: var(--font-header, var(--vk-font-sans)); font-size:26px; font-weight:700; letter-spacing:-0.03em; line-height:1;">$4,820.18</div>
+          <div style="display:flex; gap:6px; margin-top:12px;">
+            <span style="padding:5px 10px; background:rgba(255,255,255,0.22); border-radius:${radiusPill}; font-size:9px; font-weight:600;">Send</span>
+            <span style="padding:5px 10px; background:rgba(255,255,255,0.22); border-radius:${radiusPill}; font-size:9px; font-weight:600;">Top up</span>
+          </div>
+        </div>
+
+        <!-- secondary stats -->
+        <div style="display:grid; grid-template-columns:1fr 1fr; gap:6px; margin-bottom:12px;">
+          <div style="background:color-mix(in srgb, ${secondary} 14%, transparent); border-radius:${radiusItem}; padding:10px;">
+            <div style="font-size:9px; color:color-mix(in srgb, ${fg} 60%, transparent); font-weight:500;">Saved</div>
+            <div style="font-family: var(--font-header, var(--vk-font-sans)); font-size:14px; color:${secondary}; font-weight:700; letter-spacing:-0.02em; line-height:1.1; margin-top:2px;">$1,240</div>
+          </div>
+          <div style="background:color-mix(in srgb, ${tertiary} 14%, transparent); border-radius:${radiusItem}; padding:10px;">
+            <div style="font-size:9px; color:color-mix(in srgb, ${fg} 60%, transparent); font-weight:500;">Spent</div>
+            <div style="font-family: var(--font-header, var(--vk-font-sans)); font-size:14px; color:${tertiary}; font-weight:700; letter-spacing:-0.02em; line-height:1.1; margin-top:2px;">$680</div>
+          </div>
+        </div>
+
+        <div style="font-size:9px; color:color-mix(in srgb, ${fg} 55%, transparent); font-weight:600; text-transform:uppercase; letter-spacing:0.05em; margin-bottom:6px;">Recent</div>
+
+        <div style="display:flex; flex-direction:column; gap:4px; flex:1;">
+          ${renderTxnRow('Spotify', 'Subscription', '−$4.99', danger, bg, fg, radiusItem)}
+          ${renderTxnRow('Refund', 'From Acme Inc.', '+$24.00', success, bg, fg, radiusItem)}
+          ${renderTxnRow('Coffee', 'Today, 8:14am', '−$5.20', fg, bg, fg, radiusItem)}
+        </div>
+
+        <!-- bottom nav -->
+        <div style="display:flex; justify-content:space-around; align-items:center; padding:12px 0; border-top:0.5px solid ${hairline}; margin:10px -12px 0;">
+          <span style="width:18px; height:3px; background:${primary}; border-radius:2px;"></span>
+          <span style="width:5px; height:5px; background:color-mix(in srgb, ${fg} 25%, transparent); border-radius:50%;"></span>
+          <span style="width:5px; height:5px; background:color-mix(in srgb, ${fg} 25%, transparent); border-radius:50%;"></span>
+          <span style="width:5px; height:5px; background:color-mix(in srgb, ${fg} 25%, transparent); border-radius:50%;"></span>
+        </div>
+      </div>
+    </div>
+  `
+}
+
+function renderTxnRow(
+  name: string,
+  sub: string,
+  amount: string,
+  amountColor: string,
+  bg: string,
+  fg: string,
+  radius: string
+): string {
+  return `
+    <div style="display:flex; justify-content:space-between; padding:8px 10px; background:${bg}; border-radius:${radius}; align-items:center;">
+      <div>
+        <div style="font-size:10px; font-weight:600; line-height:1.2;">${escapeHtml(
+          name
+        )}</div>
+        <div style="font-size:9px; color:color-mix(in srgb, ${fg} 50%, transparent);">${escapeHtml(
+    sub
+  )}</div>
+      </div>
+      <div style="font-size:10px; font-weight:700; color:${amountColor};">${escapeHtml(
+    amount
+  )}</div>
+    </div>
+  `
+}
+
 function renderTypeScale(theme: AnyTheme): string {
   const t = theme.typography ?? {}
   const base = typeof t.base === 'number' ? t.base : 16
@@ -362,6 +594,20 @@ ${cssVars
     text-align: right;
   }
 
+  /* Mockup grid */
+  .vk-pp-mockup-grid {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) 240px;
+    gap: 20px;
+    align-items: start;
+  }
+  @media (max-width: 720px) {
+    .vk-pp-mockup-grid {
+      grid-template-columns: 1fr;
+      justify-items: center;
+    }
+  }
+
   /* Components grid */
   .vk-pp-comp-grid {
     display: grid;
@@ -600,6 +846,15 @@ ${cssVars
   <div class="vk-pp-showcase">
 
     <section class="vk-pp-section">
+      <p class="vk-pp-section-eyebrow">Mockups</p>
+      <h2 class="vk-pp-section-title">In real product UI</h2>
+      <div class="vk-pp-mockup-grid">
+        ${renderWebMockup(theme)}
+        ${renderMobileMockup(theme)}
+      </div>
+    </section>
+
+    <section class="vk-pp-section">
       <p class="vk-pp-section-eyebrow">Colors</p>
       <h2 class="vk-pp-section-title">Tokens in the palette</h2>
       ${renderColorGroups(theme)}
@@ -617,7 +872,7 @@ ${cssVars
 
     <section class="vk-pp-section">
       <p class="vk-pp-section-eyebrow">Components</p>
-      <h2 class="vk-pp-section-title">In context</h2>
+      <h2 class="vk-pp-section-title">Primitives in your theme</h2>
       <div class="vk-pp-comp-grid">
 
         <div class="vk-pp-comp-card">

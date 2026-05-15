@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useState } from 'react'
+import { Link } from 'react-router-dom'
 import ColorControls from './components/ColorControls'
 import LivePreview from './components/LivePreview'
 import PaletteGenerator from './components/PaletteGenerator'
@@ -19,7 +20,14 @@ import {
   saveTheme as apiSaveTheme,
   deleteTheme as apiDeleteTheme,
 } from './lib/api'
-import { newId, readTypography, themeToCssVars } from './lib/theme'
+import {
+  newId,
+  readTypography,
+  themeToCssVars,
+  themeToTailwind,
+  themeToTokens,
+  themeToScss,
+} from './lib/theme'
 import type { Theme, ThemeRow } from './types/theme'
 import {
   BgColorsOutlined,
@@ -138,24 +146,28 @@ export default function App() {
     await refreshThemes()
   }
 
-  const cssVars = useMemo(
-    () =>
-      themeToCssVars({
-        ...theme,
-        typography: {
-          ...(theme.typography ?? {}),
-          headerFont: typo.headerFont,
-          headerWeights: [typo.headerWeight],
-          headerLineHeight: typo.headerLineHeight,
-          headerLetterSpacing: typo.headerLetterSpacing,
-          paragraphFont: typo.paragraphFont,
-          paragraphWeights: [typo.paragraphWeight],
-          paragraphLineHeight: typo.paragraphLineHeight,
-          paragraphLetterSpacing: typo.paragraphLetterSpacing,
-        },
-      }),
-    [theme, typo]
-  )
+  const exports = useMemo(() => {
+    const fullTheme: Theme = {
+      ...theme,
+      typography: {
+        ...(theme.typography ?? {}),
+        headerFont: typo.headerFont,
+        headerWeights: [typo.headerWeight],
+        headerLineHeight: typo.headerLineHeight,
+        headerLetterSpacing: typo.headerLetterSpacing,
+        paragraphFont: typo.paragraphFont,
+        paragraphWeights: [typo.paragraphWeight],
+        paragraphLineHeight: typo.paragraphLineHeight,
+        paragraphLetterSpacing: typo.paragraphLetterSpacing,
+      },
+    }
+    return {
+      css: themeToCssVars(fullTheme),
+      tailwind: themeToTailwind(fullTheme),
+      tokens: themeToTokens(fullTheme),
+      scss: themeToScss(fullTheme),
+    }
+  }, [theme, typo])
 
   const apiBase = getApiBase()
   const hasCurrent = !!theme.id
@@ -185,6 +197,9 @@ export default function App() {
           />
         </div>
         <div className='vk-topbar-actions'>
+          <Link to='/docs' className='vk-btn vk-btn--text vk-btn--sm'>
+            Docs
+          </Link>
           {hasCurrent && (
             <button
               className='vk-btn vk-btn--outline vk-btn--sm'
@@ -224,7 +239,7 @@ export default function App() {
         <section className='vk-canvas'>
           <LivePreview apiBase={apiBase} />
           <ContrastChecker />
-          <CssVarsPanel cssVars={cssVars} />
+          <CssVarsPanel exports={exports} />
         </section>
 
         <aside className='vk-controls'>

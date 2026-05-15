@@ -146,9 +146,21 @@ export default {
 
     // GET /themes
     if (request.method === 'GET' && url.pathname === '/themes') {
-      const rows = await env.DB.prepare(
-        'SELECT id, name, description, created_at FROM themes ORDER BY created_at DESC'
-      ).all<ThemeRow>()
+      let rows: { results?: ThemeRow[] }
+      try {
+        rows = await env.DB.prepare(
+          'SELECT id, name, description, created_at FROM themes ORDER BY created_at DESC'
+        ).all<ThemeRow>()
+      } catch (e: any) {
+        // description column may not exist yet — fall back to legacy schema
+        if (/description/i.test(String(e?.message || e))) {
+          rows = await env.DB.prepare(
+            'SELECT id, name, created_at FROM themes ORDER BY created_at DESC'
+          ).all<ThemeRow>()
+        } else {
+          throw e
+        }
+      }
       const list = (rows.results || []).map((r: ThemeRow) => ({
         id: r.id,
         name: r.name || 'Untitled Theme',
@@ -179,30 +191,56 @@ export default {
       const spacing = JSON.stringify(body.spacing || {})
       const created_at = Math.floor(Date.now() / 1000)
 
-      await env.DB.prepare(
+      try {
+        await env.DB.prepare(
+          `
+          INSERT INTO themes (id, name, description, logo_url, colors, typography, spacing, created_at)
+          VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+          ON CONFLICT(id) DO UPDATE SET
+            name = excluded.name,
+            description = excluded.description,
+            logo_url = excluded.logo_url,
+            colors = excluded.colors,
+            typography = excluded.typography,
+            spacing = excluded.spacing
         `
-        INSERT INTO themes (id, name, description, logo_url, colors, typography, spacing, created_at)
-        VALUES (?, ?, ?, ?, ?, ?, ?, ?)
-        ON CONFLICT(id) DO UPDATE SET
-          name = excluded.name,
-          description = excluded.description,
-          logo_url = excluded.logo_url,
-          colors = excluded.colors,
-          typography = excluded.typography,
-          spacing = excluded.spacing
-      `
-      )
-        .bind(
-          id,
-          name,
-          description,
-          logo_url,
-          colors,
-          typography,
-          spacing,
-          created_at
         )
-        .run()
+          .bind(
+            id,
+            name,
+            description,
+            logo_url,
+            colors,
+            typography,
+            spacing,
+            created_at
+          )
+          .run()
+      } catch (e: any) {
+        // description column may not exist yet — fall back to legacy schema
+        if (/description/i.test(String(e?.message || e))) {
+          await env.DB.prepare(
+            `
+            INSERT INTO themes (id, name, logo_url, colors, typography, spacing, created_at)
+            VALUES (?, ?, ?, ?, ?, ?, ?)
+            ON CONFLICT(id) DO UPDATE SET
+              name = excluded.name,
+              logo_url = excluded.logo_url,
+              colors = excluded.colors,
+              typography = excluded.typography,
+              spacing = excluded.spacing
+          `
+          )
+            .bind(id, name, logo_url, colors, typography, spacing, created_at)
+            .run()
+        } else {
+          return json(
+            { error: e?.message || 'Save failed' },
+            { status: 500 },
+            origin
+          )
+        }
+      }
 
       return json({ id, name, description }, { status: 200 }, origin)
     }

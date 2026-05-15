@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 
 type Props = {
   isOpen: boolean
@@ -13,121 +13,88 @@ export default function DeleteModal({
   onClose,
   onConfirm,
 }: Props) {
-  const [password, setPassword] = useState('')
-  const [passwordError, setPasswordError] = useState('')
+  const [typed, setTyped] = useState('')
+  const inputRef = useRef<HTMLInputElement>(null)
 
-  function handleSubmit(e: React.FormEvent) {
-    e.preventDefault()
-
-    const requiredPassword = import.meta.env.VITE_DELETE_PASSWORD as string
-    if (password !== requiredPassword) {
-      setPasswordError('Incorrect password')
-      return
+  // Reset and focus when opened
+  useEffect(() => {
+    if (isOpen) {
+      setTyped('')
+      // Focus next tick so the modal is mounted
+      const id = setTimeout(() => inputRef.current?.focus(), 50)
+      return () => clearTimeout(id)
     }
+  }, [isOpen])
 
-    // Reset form state and close modal
-    setPassword('')
-    setPasswordError('')
-    onConfirm()
-  }
-
-  function handleClose() {
-    setPassword('')
-    setPasswordError('')
-    onClose()
-  }
+  // Close on Escape
+  useEffect(() => {
+    if (!isOpen) return
+    function onKey(e: KeyboardEvent) {
+      if (e.key === 'Escape') onClose()
+    }
+    document.addEventListener('keydown', onKey)
+    return () => document.removeEventListener('keydown', onKey)
+  }, [isOpen, onClose])
 
   if (!isOpen) return null
 
+  const matches = typed.trim() === themeName.trim()
+
+  function handleSubmit(e: React.FormEvent) {
+    e.preventDefault()
+    if (!matches) return
+    onConfirm()
+  }
+
   return (
-    <div
-      style={{
-        position: 'fixed',
-        top: 0,
-        left: 0,
-        right: 0,
-        bottom: 0,
-        backgroundColor: 'rgba(0, 0, 0, 0.5)',
-        display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'center',
-        zIndex: 1000,
-      }}
-      onClick={handleClose}
-    >
+    <div className='vk-modal-backdrop' onClick={onClose}>
       <div
-        style={{
-          backgroundColor: 'white',
-          borderRadius: 12,
-          padding: 24,
-          minWidth: 400,
-          maxWidth: 500,
-          boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.25)',
-        }}
+        className='vk-modal'
         onClick={(e) => e.stopPropagation()}
+        role='dialog'
+        aria-modal='true'
+        aria-labelledby='vk-modal-title'
       >
-        <h3 style={{ margin: '0 0 16px 0', color: '#dc2626' }}>Delete Theme</h3>
-        <p style={{ margin: '0 0 16px 0', color: '#6b7280' }}>
-          Are you sure you want to delete "<strong>{themeName}</strong>"? This
-          action cannot be undone.
+        <h3 id='vk-modal-title' className='vk-modal-title'>
+          Delete this theme?
+        </h3>
+        <p className='vk-modal-body'>
+          This can't be undone. The theme{' '}
+          <strong>{themeName || 'Untitled Theme'}</strong> will be removed
+          permanently.
         </p>
+
         <form onSubmit={handleSubmit}>
-          <label
-            htmlFor='deletePassword'
-            style={{ display: 'block', marginBottom: 8, fontWeight: 600 }}
-          >
-            Enter password to confirm:
+          <label htmlFor='vk-delete-confirm' className='vk-modal-confirm-label'>
+            To confirm, type{' '}
+            <span className='vk-modal-confirm-target'>{themeName}</span> below:
           </label>
           <input
-            id='deletePassword'
-            type='password'
-            value={password}
-            onChange={(e) => {
-              setPassword(e.target.value)
-              setPasswordError('')
-            }}
-            placeholder='Password'
-            style={{
-              width: '100%',
-              padding: '10px 12px',
-              border: passwordError ? '1px solid #dc2626' : '1px solid #e5e7eb',
-              borderRadius: 8,
-              marginBottom: 8,
-              fontSize: 14,
-            }}
-            autoFocus
+            ref={inputRef}
+            id='vk-delete-confirm'
+            type='text'
+            className='vk-modal-input'
+            value={typed}
+            onChange={(e) => setTyped(e.target.value)}
+            placeholder={themeName}
+            autoComplete='off'
+            spellCheck={false}
           />
-          {passwordError && (
-            <p style={{ margin: '0 0 16px 0', color: '#dc2626', fontSize: 14 }}>
-              {passwordError}
-            </p>
-          )}
-          <div style={{ display: 'flex', gap: 8, justifyContent: 'flex-end' }}>
+
+          <div className='vk-modal-actions'>
             <button
               type='button'
-              onClick={handleClose}
-              style={{
-                padding: '8px 16px',
-                border: '1px solid #e5e7eb',
-                borderRadius: 8,
-                backgroundColor: 'white',
-                cursor: 'pointer',
-              }}
+              className='vk-btn vk-btn--outline vk-btn--sm'
+              onClick={onClose}
             >
               Cancel
             </button>
             <button
               type='submit'
-              style={{
-                padding: '8px 16px',
-                border: 'none',
-                borderRadius: 8,
-                backgroundColor: '#dc2626',
-                color: 'white',
-                cursor: 'pointer',
-              }}
+              className='vk-btn vk-btn--danger vk-btn--sm'
+              disabled={!matches}
             >
-              Delete Theme
+              Delete theme
             </button>
           </div>
         </form>

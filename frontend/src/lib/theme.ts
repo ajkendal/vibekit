@@ -89,6 +89,19 @@ export function gfParam(
 
 const FONT_STACK_FALLBACK = `system-ui, -apple-system, Segoe UI, Roboto, sans-serif`
 
+const COLOR_KEYS = [
+  'neutral_light',
+  'neutral_mid',
+  'neutral_dark',
+  'primary',
+  'secondary',
+  'tertiary',
+  'danger',
+  'warning',
+  'caution',
+  'success',
+] as const
+
 /** Render a theme as a CSS `:root { ... }` block. */
 export function themeToCssVars(theme: Theme): string {
   const c = theme.colors ?? {}
@@ -125,4 +138,140 @@ export function themeToCssVars(theme: Theme): string {
     push('--border-radius', `${s.borderRadius}px`)
 
   return `:root{\n  ${lines.join('\n  ')}\n}`
+}
+
+/* ───────── Tailwind config ───────── */
+
+export function themeToTailwind(theme: Theme): string {
+  const c = theme.colors ?? {}
+  const t = theme.typography ?? {}
+  const s = theme.spacing ?? {}
+
+  const colors: Record<string, string> = {}
+  COLOR_KEYS.forEach((k) => {
+    const v = c[k]
+    if (v) colors[k.replace('_', '-')] = v
+  })
+
+  const fallback = FONT_STACK_FALLBACK.split(',').map((f) => f.trim())
+  const fontFamily: Record<string, string[]> = {}
+  if (t.headerFont) fontFamily.heading = [t.headerFont, ...fallback]
+  if (t.paragraphFont) fontFamily.body = [t.paragraphFont, ...fallback]
+
+  const borderRadius: Record<string, string> = {}
+  if (typeof s.borderRadius === 'number')
+    borderRadius.DEFAULT = `${s.borderRadius}px`
+
+  const extend: Record<string, unknown> = {}
+  if (Object.keys(colors).length) extend.colors = colors
+  if (Object.keys(fontFamily).length) extend.fontFamily = fontFamily
+  if (Object.keys(borderRadius).length) extend.borderRadius = borderRadius
+
+  const config = { theme: { extend } }
+  return `// Add to your tailwind.config.js\nmodule.exports = ${JSON.stringify(
+    config,
+    null,
+    2
+  )}\n`
+}
+
+/* ───────── W3C Design Tokens ───────── */
+
+export function themeToTokens(theme: Theme): string {
+  const c = theme.colors ?? {}
+  const t = theme.typography ?? {}
+  const s = theme.spacing ?? {}
+
+  const tokens: Record<string, any> = {
+    $description:
+      theme.description || `Design tokens for ${theme.name || 'theme'}`,
+    color: {},
+    typography: {},
+    spacing: {},
+  }
+
+  COLOR_KEYS.forEach((k) => {
+    const v = c[k]
+    if (v) tokens.color[k.replace('_', '-')] = { $value: v, $type: 'color' }
+  })
+
+  if (t.headerFont)
+    tokens.typography.headerFont = {
+      $value: t.headerFont,
+      $type: 'fontFamily',
+    }
+  if (t.paragraphFont)
+    tokens.typography.paragraphFont = {
+      $value: t.paragraphFont,
+      $type: 'fontFamily',
+    }
+  if (typeof t.base === 'number')
+    tokens.typography.baseSize = { $value: `${t.base}px`, $type: 'dimension' }
+  if (typeof t.ratio === 'number')
+    tokens.typography.scaleRatio = { $value: t.ratio, $type: 'number' }
+  if (typeof t.headerLineHeight === 'number')
+    tokens.typography.headerLineHeight = {
+      $value: t.headerLineHeight,
+      $type: 'number',
+    }
+  if (typeof t.paragraphLineHeight === 'number')
+    tokens.typography.paragraphLineHeight = {
+      $value: t.paragraphLineHeight,
+      $type: 'number',
+    }
+
+  if (typeof s.borderRadius === 'number')
+    tokens.spacing.borderRadius = {
+      $value: `${s.borderRadius}px`,
+      $type: 'dimension',
+    }
+
+  // Drop empty top-level groups so the output is tidy
+  for (const k of Object.keys(tokens)) {
+    const v = tokens[k]
+    if (v && typeof v === 'object' && !Array.isArray(v) && Object.keys(v).length === 0) {
+      delete tokens[k]
+    }
+  }
+
+  return JSON.stringify(tokens, null, 2)
+}
+
+/* ───────── SCSS variables ───────── */
+
+export function themeToScss(theme: Theme): string {
+  const c = theme.colors ?? {}
+  const t = theme.typography ?? {}
+  const s = theme.spacing ?? {}
+
+  const sections: string[][] = []
+
+  const colorLines: string[] = []
+  COLOR_KEYS.forEach((k) => {
+    const v = c[k]
+    if (v) colorLines.push(`$color-${k.replace('_', '-')}: ${v};`)
+  })
+  if (colorLines.length) sections.push(['// Colors', ...colorLines])
+
+  const typoLines: string[] = []
+  if (t.headerFont)
+    typoLines.push(`$font-header: '${t.headerFont}', ${FONT_STACK_FALLBACK};`)
+  if (t.paragraphFont)
+    typoLines.push(
+      `$font-paragraph: '${t.paragraphFont}', ${FONT_STACK_FALLBACK};`
+    )
+  if (typeof t.base === 'number') typoLines.push(`$font-base: ${t.base}px;`)
+  if (typeof t.ratio === 'number') typoLines.push(`$font-ratio: ${t.ratio};`)
+  if (typeof t.headerLineHeight === 'number')
+    typoLines.push(`$line-height-header: ${t.headerLineHeight};`)
+  if (typeof t.paragraphLineHeight === 'number')
+    typoLines.push(`$line-height-paragraph: ${t.paragraphLineHeight};`)
+  if (typoLines.length) sections.push(['// Typography', ...typoLines])
+
+  const spaceLines: string[] = []
+  if (typeof s.borderRadius === 'number')
+    spaceLines.push(`$border-radius: ${s.borderRadius}px;`)
+  if (spaceLines.length) sections.push(['// Spacing', ...spaceLines])
+
+  return sections.map((s) => s.join('\n')).join('\n\n') + '\n'
 }

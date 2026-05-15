@@ -32,16 +32,43 @@ function blendColors(hex1: string, hex2: string, ratio = 0.5): string {
   )
 }
 
+/**
+ * Derive a set of neutral colors from a base hue.
+ *
+ * Lights pull strongly toward white (95% white + 5% base) and darks pull
+ * strongly toward near-black (90% ink + 10% base). The base color
+ * contributes only a faint tint — enough to feel related to the brand, but
+ * the result still reads as a usable "white" or "black".
+ *
+ * Mid is the geometric midpoint between the two, which lands on a balanced
+ * mid-gray with the same subtle tint.
+ *
+ * Users can still override any value via the color picker; this is only the
+ * starting point when "Derive neutrals" is checked.
+ */
 function deriveNeutralsFrom(baseHex: string) {
   const { r, g, b } = hexToRgb(baseHex)
-  const gray = Math.round((r + g + b) / 3)
-  const dr = Math.round(r * 0.15 + gray * 0.85)
-  const dg = Math.round(g * 0.15 + gray * 0.85)
-  const db = Math.round(b * 0.15 + gray * 0.85)
+
+  // Light: 95% white + 5% base. Reads as "warm white" / "cool white".
+  const lightR = Math.round(r * 0.05 + 255 * 0.95)
+  const lightG = Math.round(g * 0.05 + 255 * 0.95)
+  const lightB = Math.round(b * 0.05 + 255 * 0.95)
+
+  // Dark: 90% near-black + 10% base. Reads as "warm ink" / "cool ink".
+  const inkBase = 16 // not full black — a softer, paper-like dark
+  const darkR = Math.round(r * 0.1 + inkBase * 0.9)
+  const darkG = Math.round(g * 0.1 + inkBase * 0.9)
+  const darkB = Math.round(b * 0.1 + inkBase * 0.9)
+
+  // Mid: the geometric midpoint — balanced, still subtly tinted.
+  const midR = Math.round((lightR + darkR) / 2)
+  const midG = Math.round((lightG + darkG) / 2)
+  const midB = Math.round((lightB + darkB) / 2)
+
   return {
-    neutral_light: rgbToHex(dr + 50, dg + 50, db + 50),
-    neutral_mid: rgbToHex(dr + 10, dg + 10, db + 10),
-    neutral_dark: rgbToHex(dr - 40, dg - 40, db - 40),
+    neutral_light: rgbToHex(lightR, lightG, lightB),
+    neutral_mid: rgbToHex(midR, midG, midB),
+    neutral_dark: rgbToHex(darkR, darkG, darkB),
   }
 }
 

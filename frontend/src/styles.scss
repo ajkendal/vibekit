@@ -627,6 +627,10 @@ body {
 .vk-workspace {
   display: grid;
   grid-template-columns: minmax(0, 1fr) 380px;
+  grid-template-areas:
+    'preview controls'
+    'contrast controls'
+    'export controls';
   gap: 24px;
   padding: 24px;
   flex: 1;
@@ -635,8 +639,16 @@ body {
   margin: 0 auto;
   align-items: start;
 
+  /* Single-column stack — interleaves the controls panel between the
+     Live Preview and the Contrast Checker so small-screen users see:
+     Preview → Controls → Contrast → Export. */
   @media (max-width: 1024px) {
     grid-template-columns: 1fr;
+    grid-template-areas:
+      'preview'
+      'controls'
+      'contrast'
+      'export';
   }
 
   @media (max-width: 720px) {
@@ -645,14 +657,24 @@ body {
   }
 }
 
-.vk-canvas {
-  display: flex;
-  flex-direction: column;
-  gap: 24px;
+.vk-area {
   min-width: 0;
 }
 
+.vk-area--preview {
+  grid-area: preview;
+}
+
+.vk-area--contrast {
+  grid-area: contrast;
+}
+
+.vk-area--export {
+  grid-area: export;
+}
+
 .vk-controls {
+  grid-area: controls;
   display: flex;
   flex-direction: column;
   gap: 16px;

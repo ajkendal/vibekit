@@ -236,11 +236,9 @@ export default function App() {
 
       {/* ───────── WORKSPACE ───────── */}
       <main className='vk-workspace'>
-        <section className='vk-canvas'>
+        <div className='vk-area vk-area--preview'>
           <LivePreview apiBase={apiBase} />
-          <ContrastChecker />
-          <CssVarsPanel exports={exports} />
-        </section>
+        </div>
 
         <aside className='vk-controls'>
           {activeCategory === 'colors' && (
@@ -410,6 +408,14 @@ export default function App() {
             </div>
           )}
         </aside>
+
+        <div className='vk-area vk-area--contrast'>
+          <ContrastChecker />
+        </div>
+
+        <div className='vk-area vk-area--export'>
+          <CssVarsPanel exports={exports} />
+        </div>
       </main>
     </div>
   )

@@ -17,6 +17,7 @@ import {
   themeToTokens,
   themeToScss,
 } from './exports'
+import { iconSvg, SHOWCASE_ICONS } from './icons'
 
 type AnyTheme = {
   id?: string
@@ -150,10 +151,22 @@ function renderWebMockup(theme: AnyTheme): string {
       <!-- content -->
       <div style="display:grid; grid-template-columns:120px minmax(0, 1fr); min-height:260px;">
         <div style="background:color-mix(in srgb, ${fg} 3%, transparent); padding:14px 10px; display:flex; flex-direction:column; gap:4px; border-right:0.5px solid ${hairline};">
-          <span style="padding:6px 10px; background:color-mix(in srgb, ${primary} 12%, transparent); color:${primary}; border-radius:${radiusSm}; font-size:11px; font-weight:600;">Overview</span>
-          <span style="padding:6px 10px; color:color-mix(in srgb, ${fg} 70%, transparent); font-size:11px; font-weight:500;">Customers</span>
-          <span style="padding:6px 10px; color:color-mix(in srgb, ${fg} 70%, transparent); font-size:11px; font-weight:500;">Orders</span>
-          <span style="padding:6px 10px; color:color-mix(in srgb, ${fg} 70%, transparent); font-size:11px; font-weight:500;">Products</span>
+          <span style="display:flex; align-items:center; gap:7px; padding:6px 10px; background:color-mix(in srgb, ${primary} 12%, transparent); color:${primary}; border-radius:${radiusSm}; font-size:11px; font-weight:600;">${iconSvg(
+            'grid',
+            12
+          )}<span>Overview</span></span>
+          <span style="display:flex; align-items:center; gap:7px; padding:6px 10px; color:color-mix(in srgb, ${fg} 70%, transparent); font-size:11px; font-weight:500;">${iconSvg(
+            'users',
+            12
+          )}<span>Customers</span></span>
+          <span style="display:flex; align-items:center; gap:7px; padding:6px 10px; color:color-mix(in srgb, ${fg} 70%, transparent); font-size:11px; font-weight:500;">${iconSvg(
+            'shoppingBag',
+            12
+          )}<span>Orders</span></span>
+          <span style="display:flex; align-items:center; gap:7px; padding:6px 10px; color:color-mix(in srgb, ${fg} 70%, transparent); font-size:11px; font-weight:500;">${iconSvg(
+            'package',
+            12
+          )}<span>Products</span></span>
         </div>
         <div style="padding:16px 20px;">
           <div style="display:flex; justify-content:space-between; align-items:baseline; margin-bottom:12px;">
@@ -244,21 +257,21 @@ function renderMobileMockup(theme: AnyTheme): string {
 
   return `
     <div style="background:${fg}; border-radius:28px; padding:6px;">
-      <div style="background:${phoneBg}; border-radius:24px; padding:14px 12px 0; min-height:440px; display:flex; flex-direction:column;">
+      <div style="background:${phoneBg}; color:${bg}; border-radius:24px; padding:14px 12px 0; min-height:440px; display:flex; flex-direction:column;">
         <!-- status bar -->
-        <div style="display:flex; justify-content:space-between; font-family: var(--vk-font-mono); font-size:9px; color:${fg}; font-weight:600; margin-bottom:14px;">
+        <div style="display:flex; justify-content:space-between; font-family: var(--vk-font-mono); font-size:9px; color:${bg}; font-weight:600; margin-bottom:14px;">
           <span>9:41</span><span>●●●  ▮</span>
         </div>
 
         <!-- header -->
         <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:14px;">
           <div>
-            <div style="font-family: var(--font-header, var(--vk-font-sans)); font-size:16px; font-weight:700; letter-spacing:-0.02em; line-height:1;">Hello, Maya</div>
-            <div style="font-size:10px; color:color-mix(in srgb, ${fg} 55%, transparent); margin-top:2px;">Tuesday, May 5</div>
+            <div style="font-family: var(--font-header, var(--vk-font-sans)); font-size:16px; font-weight:700; letter-spacing:-0.02em; line-height:1; color:${bg};">Hello, Maya</div>
+            <div style="font-size:10px; color:color-mix(in srgb, ${bg} 70%, transparent); margin-top:2px;">Tuesday, May 5</div>
           </div>
           <div style="position:relative; width:30px; height:30px; background:${bg}; border-radius:50%; display:flex; align-items:center; justify-content:center;">
             <span style="width:7px; height:7px; background:${primary}; border-radius:50%; position:absolute; top:5px; right:5px;"></span>
-            <span style="font-size:13px;">♡</span>
+            <span style="color:${fg}; display:inline-flex;">${iconSvg('bell', 14)}</span>
           </div>
         </div>
 
@@ -275,16 +288,16 @@ function renderMobileMockup(theme: AnyTheme): string {
         <!-- secondary stats -->
         <div style="display:grid; grid-template-columns:1fr 1fr; gap:6px; margin-bottom:12px;">
           <div style="background:color-mix(in srgb, ${secondary} 14%, transparent); border-radius:${radiusItem}; padding:10px;">
-            <div style="font-size:9px; color:color-mix(in srgb, ${fg} 60%, transparent); font-weight:500;">Saved</div>
+            <div style="font-size:9px; color:color-mix(in srgb, ${bg} 70%, transparent); font-weight:500;">Saved</div>
             <div style="font-family: var(--font-header, var(--vk-font-sans)); font-size:14px; color:${secondary}; font-weight:700; letter-spacing:-0.02em; line-height:1.1; margin-top:2px;">$1,240</div>
           </div>
           <div style="background:color-mix(in srgb, ${tertiary} 14%, transparent); border-radius:${radiusItem}; padding:10px;">
-            <div style="font-size:9px; color:color-mix(in srgb, ${fg} 60%, transparent); font-weight:500;">Spent</div>
+            <div style="font-size:9px; color:color-mix(in srgb, ${bg} 70%, transparent); font-weight:500;">Spent</div>
             <div style="font-family: var(--font-header, var(--vk-font-sans)); font-size:14px; color:${tertiary}; font-weight:700; letter-spacing:-0.02em; line-height:1.1; margin-top:2px;">$680</div>
           </div>
         </div>
 
-        <div style="font-size:9px; color:color-mix(in srgb, ${fg} 55%, transparent); font-weight:600; text-transform:uppercase; letter-spacing:0.05em; margin-bottom:6px;">Recent</div>
+        <div style="font-size:9px; color:color-mix(in srgb, ${bg} 70%, transparent); font-weight:600; text-transform:uppercase; letter-spacing:0.05em; margin-bottom:6px;">Recent</div>
 
         <div style="display:flex; flex-direction:column; gap:4px; flex:1;">
           ${renderTxnRow('Spotify', 'Subscription', '−$4.99', danger, bg, fg, radiusItem)}
@@ -294,10 +307,22 @@ function renderMobileMockup(theme: AnyTheme): string {
 
         <!-- bottom nav -->
         <div style="display:flex; justify-content:space-around; align-items:center; padding:12px 0; border-top:0.5px solid ${hairline}; margin:10px -12px 0;">
-          <span style="width:18px; height:3px; background:${primary}; border-radius:2px;"></span>
-          <span style="width:5px; height:5px; background:color-mix(in srgb, ${fg} 25%, transparent); border-radius:50%;"></span>
-          <span style="width:5px; height:5px; background:color-mix(in srgb, ${fg} 25%, transparent); border-radius:50%;"></span>
-          <span style="width:5px; height:5px; background:color-mix(in srgb, ${fg} 25%, transparent); border-radius:50%;"></span>
+          <span style="color:${primary}; display:flex; flex-direction:column; align-items:center; gap:3px;">${iconSvg(
+            'home',
+            18
+          )}<span style="width:16px; height:2px; background:${primary}; border-radius:1px;"></span></span>
+          <span style="color:color-mix(in srgb, ${bg} 55%, transparent); padding-bottom:5px;">${iconSvg(
+            'search',
+            18
+          )}</span>
+          <span style="color:color-mix(in srgb, ${bg} 55%, transparent); padding-bottom:5px;">${iconSvg(
+            'list',
+            18
+          )}</span>
+          <span style="color:color-mix(in srgb, ${bg} 55%, transparent); padding-bottom:5px;">${iconSvg(
+            'user',
+            18
+          )}</span>
         </div>
       </div>
     </div>
@@ -313,8 +338,11 @@ function renderTxnRow(
   fg: string,
   radius: string
 ): string {
+  // The transaction row is a light card on the dark phone screen. The screen
+  // sets its default text color to light (so labels read on dark), so we have
+  // to explicitly reset color:${fg} here for text inside the light card.
   return `
-    <div style="display:flex; justify-content:space-between; padding:8px 10px; background:${bg}; border-radius:${radius}; align-items:center;">
+    <div style="display:flex; justify-content:space-between; padding:8px 10px; background:${bg}; color:${fg}; border-radius:${radius}; align-items:center;">
       <div>
         <div style="font-size:10px; font-weight:600; line-height:1.2;">${escapeHtml(
           name
@@ -594,6 +622,23 @@ ${cssVars
     text-align: right;
   }
 
+  /* Icons showcase grid */
+  .vk-pp-icon-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(56px, 1fr));
+    gap: 8px;
+  }
+  .vk-pp-icon-cell {
+    aspect-ratio: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 10px;
+    border: 0.5px solid color-mix(in srgb, var(--color-neutral-dark, #1A1A1A) 8%, transparent);
+    background: var(--color-neutral-light, #FFFFFF);
+    color: var(--color-neutral-dark, #1A1A1A);
+  }
+
   /* Mockup grid */
   .vk-pp-mockup-grid {
     display: grid;
@@ -868,6 +913,22 @@ ${cssVars
       : ''
   }</h2>
       <div class="vk-pp-type-scale">${renderTypeScale(theme)}</div>
+    </section>
+
+    <section class="vk-pp-section">
+      <p class="vk-pp-section-eyebrow">Icons</p>
+      <h2 class="vk-pp-section-title">UI icons in your theme</h2>
+      <div class="vk-pp-icon-grid">
+        ${SHOWCASE_ICONS.map(
+          (name) =>
+            `<div class="vk-pp-icon-cell" title="${name}">${iconSvg(
+              name,
+              20,
+              'currentColor',
+              1.8
+            )}</div>`
+        ).join('')}
+      </div>
     </section>
 
     <section class="vk-pp-section">

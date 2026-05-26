@@ -4,8 +4,11 @@ import ColorControls from './components/ColorControls'
 import LivePreview from './components/LivePreview'
 import PaletteGenerator from './components/PaletteGenerator'
 import FontPicker from './components/FontPicker'
+import Pairings from './components/Pairings'
 import TypeScale from './components/TypeScale'
+import type { FontPairing } from './lib/font-pairings'
 import SavedThemes from './components/SavedThemes'
+import Templates from './components/Templates'
 import BrandLogo from './components/BrandLogo'
 import CssVarsPanel from './components/CssVarsPanel'
 import ContrastChecker from './components/ContrastChecker'
@@ -35,14 +38,22 @@ import {
   RadiusUprightOutlined,
   FileImageOutlined,
   SaveOutlined,
+  AppstoreOutlined,
 } from '@ant-design/icons'
 
 /* Re-exported for legacy callers; the canonical implementation lives in lib/theme. */
 export { themeToCssVars }
 
-type Category = 'colors' | 'type' | 'spacing' | 'brand' | 'themes'
+type Category =
+  | 'templates'
+  | 'colors'
+  | 'type'
+  | 'spacing'
+  | 'brand'
+  | 'themes'
 
 const CATEGORIES: { key: Category; label: string }[] = [
+  { key: 'templates', label: 'Templates' },
   { key: 'colors', label: 'Colors' },
   { key: 'type', label: 'Typography' },
   { key: 'spacing', label: 'Spacing' },
@@ -144,6 +155,29 @@ export default function App() {
   async function deleteTheme(id: string) {
     await apiDeleteTheme(id)
     await refreshThemes()
+  }
+
+  function loadTemplate(template: Theme) {
+    // Drop the template's identity; the user's first Save creates a new theme
+    setTheme((prev) => ({
+      ...prev,
+      ...template,
+      id: undefined,
+    }))
+    setThemeName(template.name ?? '')
+  }
+
+  function applyPairing(pairing: FontPairing) {
+    // Pairings only change the font families; weight, italic, line-height,
+    // letter-spacing, and the type scale are intentionally left alone.
+    setTheme((prev) => ({
+      ...prev,
+      typography: {
+        ...(prev.typography ?? {}),
+        headerFont: pairing.header,
+        paragraphFont: pairing.body,
+      },
+    }))
   }
 
   const exports = useMemo(() => {
@@ -271,6 +305,22 @@ export default function App() {
                   <span className='vk-control-card-icon'>
                     <FontSizeOutlined />
                   </span>
+                  <h3 className='vk-control-card-title'>Pairings</h3>
+                </div>
+                <Pairings
+                  current={{
+                    header: typo.headerFont,
+                    body: typo.paragraphFont,
+                  }}
+                  onApply={applyPairing}
+                />
+              </div>
+
+              <div className='vk-control-card'>
+                <div className='vk-control-card-head'>
+                  <span className='vk-control-card-icon'>
+                    <FontSizeOutlined />
+                  </span>
                   <h3 className='vk-control-card-title'>Header font</h3>
                 </div>
                 <FontPicker
@@ -385,6 +435,20 @@ export default function App() {
                   setTheme((p) => ({ ...p, description: desc }))
                 }
               />
+            </div>
+          )}
+
+          {activeCategory === 'templates' && (
+            <div className='vk-control-card'>
+              <div className='vk-control-card-head'>
+                <span className='vk-control-card-icon'>
+                  <AppstoreOutlined />
+                </span>
+                <h3 className='vk-control-card-title'>
+                  Start from a template
+                </h3>
+              </div>
+              <Templates onPick={loadTemplate} />
             </div>
           )}
 

@@ -53,9 +53,9 @@ export default function Docs() {
             (editable inline), and the Save buttons.
           </li>
           <li className='vk-docs-li'>
-            <strong>Tab strip.</strong> Five categories of controls — Colors,
-            Typography, Spacing, Brand, Themes. Click a tab to swap the right
-            panel.
+            <strong>Tab strip.</strong> Six categories of controls —
+            Templates, Colors, Typography, Spacing, Brand, Themes. Click a tab
+            to swap the right panel.
           </li>
           <li className='vk-docs-li'>
             <strong>Workspace.</strong> The big left column shows your theme
@@ -64,8 +64,17 @@ export default function Docs() {
           </li>
         </ul>
 
-        {/* ───────── Five tabs ───────── */}
-        <h2 className='vk-docs-h2'>The five tabs</h2>
+        {/* ───────── Six tabs ───────── */}
+        <h2 className='vk-docs-h2'>The six tabs</h2>
+
+        <h3 className='vk-docs-h3'>Templates</h3>
+        <p className='vk-docs-p'>
+          A grid of six curated starter themes — Sunset Soda, Workshop,
+          Editorial, Playful, Mono, Verdant — each with a complete palette,
+          font pairing, type scale, and border radius. Click any card to fork
+          the template into the editor as a new unsaved theme. Your first
+          Save creates a fresh entry without touching the template.
+        </p>
 
         <h3 className='vk-docs-h3'>Colors</h3>
         <p className='vk-docs-p'>
@@ -82,35 +91,58 @@ export default function Docs() {
           </a>
           . The <strong>Palette generator</strong> below derives a palette
           from a base color using monochromatic, analogous, complementary, or
-          triadic schemes.
+          triadic schemes — and can auto-derive neutrals that pull toward
+          white and near-black with a subtle brand tint, plus status colors,
+          so the defaults are immediately usable.
         </p>
 
         <h3 className='vk-docs-h3'>Typography</h3>
         <p className='vk-docs-p'>
-          Pick a header font and a paragraph font from Google Fonts. Tune
-          weight, italic, line-height, and letter-spacing for each
-          independently. The <strong>Type scale</strong> card sets a base
-          size and a modular ratio — your h1 through h6 sizes are derived
-          mathematically as <code>base × ratio^n</code>.
+          Three cards stacked together:
         </p>
+        <ul className='vk-docs-ul'>
+          <li className='vk-docs-li'>
+            <strong>Pairings</strong> — six curated header+body combos (Linear,
+            Vibekit, Editorial, Magazine, Modern tech, Italic flair). Click a
+            card to apply both fonts at once; weight, italic, line-height,
+            and letter-spacing are left alone.
+          </li>
+          <li className='vk-docs-li'>
+            <strong>Header font</strong> + <strong>Paragraph font</strong> — pick
+            independently from Google Fonts (curated list, or the full
+            catalog if <code>VITE_GF_API_KEY</code> is set). Each font has its
+            own weight, italic, line-height, and letter-spacing controls.
+          </li>
+          <li className='vk-docs-li'>
+            <strong>Type scale</strong> — set a base size (12-18px) and a
+            modular ratio (Minor 2nd through Perfect 5th). h1 through h6 are
+            derived as <code>base × ratio^n</code>.
+          </li>
+        </ul>
 
         <h3 className='vk-docs-h3'>Spacing</h3>
         <p className='vk-docs-p'>
           One slider: <strong>border radius</strong> (0-25px). Affects every
-          rounded element across your theme — buttons, cards, badges,
-          inputs.
+          rounded element across your theme — buttons, cards, badges, inputs,
+          and the mockups in the Live Preview update instantly.
         </p>
 
         <h3 className='vk-docs-h3'>Brand</h3>
         <p className='vk-docs-p'>
-          Upload your logo (PNG, SVG, JPG, WebP) and add a short description
-          of the theme. Both surface on the public preview page hero.
+          Upload your logo (PNG, SVG, JPG, WebP — stored on Cloudflare R2)
+          and write a short description of the theme. Both surface on the
+          public preview page hero, and the description shows up under each
+          card in the Themes tab.
         </p>
 
         <h3 className='vk-docs-h3'>Themes</h3>
         <p className='vk-docs-p'>
           Browse everything you've saved — load, duplicate, copy CSS URL,
-          open preview, or delete. Themes are sorted newest-first.
+          open preview, or delete. Each card shows the theme name, a relative
+          timestamp ("2 days ago"), the description, and an action row.
+          Delete uses a <strong>type-to-confirm</strong> pattern (GitHub-style)
+          where you type the theme name to enable the destructive button —
+          no passwords, no secrets, very hard to misclick.
         </p>
 
         {/* ───────── Canvas ───────── */}
@@ -127,23 +159,31 @@ export default function Docs() {
           tertiary on stat tiles, status colors on badges, your fonts on the
           headlines and body. Toggle between Web · Mobile · Both with the
           pill switcher at top right. Edit any value and watch both surfaces
-          update instantly.
+          update instantly. Below the mockups is an{' '}
+          <strong>Icons showcase</strong> — 24 common UI icons rendered in
+          your theme's ink-on-canvas color so you can see how line geometry
+          reads against your brand.
         </p>
 
         <h3 className='vk-docs-h3'>Contrast Checker</h3>
         <p className='vk-docs-p'>
-          WCAG validation for 12 meaningful pairs of your colors — Dark on
-          Light, Primary on Light, Light on Primary, and so on. Each pair
-          shows the live type sample on the actual color combo, an AAA / AA
-          / Large only / Fail badge, and the precise contrast ratio in
-          monospace.
+          WCAG validation for 18 meaningful pairs of your colors. The full
+          matrix runs Primary, Secondary, and Tertiary as text on each
+          neutral (Light, Mid, Dark), plus Light/Dark as text on each brand
+          color — covering every "can I use this color here?" question that
+          actually comes up. Each pair shows the live type sample on the
+          actual color combo, an AAA / AA / Large only / Fail badge, and the
+          precise contrast ratio in monospace.
         </p>
 
-        <h3 className='vk-docs-h3'>CSS Variables</h3>
+        <h3 className='vk-docs-h3'>Export</h3>
         <p className='vk-docs-p'>
-          A copy-ready <code>:root {'{ ... }'}</code> block of your full
-          theme as CSS custom properties. Click <strong>Copy CSS</strong> to
-          send it to your clipboard.
+          Four format tabs: <strong>CSS variables</strong>,{' '}
+          <strong>Tailwind</strong>, <strong>Tokens JSON</strong>,{' '}
+          <strong>SCSS</strong>. Each tab swaps the dark code block to the
+          selected format; the Copy button sends the current format to your
+          clipboard. The same four formats are available on every saved
+          theme's public preview page.
         </p>
 
         {/* ───────── Saving ───────── */}
@@ -164,15 +204,18 @@ export default function Docs() {
         </ul>
         <p className='vk-docs-p'>
           Saves are stored on the VibeKit server. No login required. Each
-          theme gets a unique ID and two public URLs.
+          theme gets a unique ID, two public URLs (one for CSS, one for the
+          preview page), and persists across sessions.
         </p>
 
         {/* ───────── Sharing & exporting ───────── */}
         <h2 className='vk-docs-h2'>Sharing &amp; exporting</h2>
         <p className='vk-docs-p'>
           Every saved theme gets a public preview page that anyone can
-          visit. The page showcases your colors, typography, and themed
-          components — and offers four export formats with one-click copy:
+          visit. The page showcases your theme as a complete brand: hero
+          with logo + name + description, web + mobile mockups, the full
+          color palette, type scale, an icons grid, themed components, and
+          all four export formats with one-click copy.
         </p>
         <ul className='vk-docs-ul'>
           <li className='vk-docs-li'>

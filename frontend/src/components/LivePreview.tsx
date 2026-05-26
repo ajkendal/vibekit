@@ -1,6 +1,8 @@
 import { useEffect, useState } from 'react'
 import { useTheme } from '../store/theme'
 import { rgba, textOn } from '../lib/color'
+import { Icon } from './Icon'
+import { SHOWCASE_ICONS } from '../lib/icons'
 
 /* ───────── helpers ───────── */
 
@@ -227,31 +229,32 @@ export default function LivePreview({ apiBase }: Props) {
             borderRight: `0.5px solid ${rgba(ink, 0.06)}`,
           }}
         >
-          <div
-            style={{
-              padding: '6px 10px',
-              background: rgba(primary, 0.12),
-              color: primary,
-              borderRadius: Math.min(radius, 8),
-              fontSize: 11,
-              fontWeight: 600,
-              ...fP,
-            }}
-          >
-            Overview
-          </div>
-          {['Customers', 'Orders', 'Products', 'Analytics'].map((label) => (
+          {(
+            [
+              { label: 'Overview', icon: 'grid', active: true },
+              { label: 'Customers', icon: 'users', active: false },
+              { label: 'Orders', icon: 'shoppingBag', active: false },
+              { label: 'Products', icon: 'package', active: false },
+              { label: 'Analytics', icon: 'barChart', active: false },
+            ] as const
+          ).map((item) => (
             <div
-              key={label}
+              key={item.label}
               style={{
+                display: 'flex',
+                alignItems: 'center',
+                gap: 7,
                 padding: '6px 10px',
-                color: rgba(ink, 0.7),
+                background: item.active ? rgba(primary, 0.12) : 'transparent',
+                color: item.active ? primary : rgba(ink, 0.7),
+                borderRadius: Math.min(radius, 8),
                 fontSize: 11,
-                fontWeight: 500,
+                fontWeight: item.active ? 600 : 500,
                 ...fP,
               }}
             >
-              {label}
+              <Icon name={item.icon} size={12} strokeWidth={2} />
+              <span>{item.label}</span>
             </div>
           ))}
         </div>
@@ -411,7 +414,7 @@ export default function LivePreview({ apiBase }: Props) {
           minHeight: 410,
           display: 'flex',
           flexDirection: 'column',
-          color: ink,
+          color: canvas,
         }}
       >
         {/* status bar */}
@@ -420,7 +423,7 @@ export default function LivePreview({ apiBase }: Props) {
             display: 'flex',
             justifyContent: 'space-between',
             fontSize: 9,
-            color: ink,
+            color: canvas,
             marginBottom: 14,
             fontFamily: 'ui-monospace, SFMono-Regular, monospace',
             fontWeight: 600,
@@ -443,13 +446,13 @@ export default function LivePreview({ apiBase }: Props) {
             <div
               style={{
                 fontSize: 16,
-                color: ink,
+                color: canvas,
                 ...headerHero,
               }}
             >
               Hello, Maya
             </div>
-            <div style={{ fontSize: 10, color: rgba(ink, 0.55), marginTop: 2, ...fP }}>
+            <div style={{ fontSize: 10, color: rgba(canvas, 0.7), marginTop: 2, ...fP }}>
               Tuesday, May 5
             </div>
           </div>
@@ -463,6 +466,7 @@ export default function LivePreview({ apiBase }: Props) {
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'center',
+              color: ink,
             }}
           >
             <div
@@ -476,7 +480,7 @@ export default function LivePreview({ apiBase }: Props) {
                 right: 5,
               }}
             />
-            <div style={{ fontSize: 13, color: ink }}>♡</div>
+            <Icon name='bell' size={14} strokeWidth={1.8} />
           </div>
         </div>
 
@@ -546,7 +550,7 @@ export default function LivePreview({ apiBase }: Props) {
               padding: 10,
             }}
           >
-            <div style={{ fontSize: 9, color: rgba(ink, 0.6), fontWeight: 500, ...fP }}>Saved</div>
+            <div style={{ fontSize: 9, color: rgba(canvas, 0.7), fontWeight: 500, ...fP }}>Saved</div>
             <div
               style={{
                 fontSize: 14,
@@ -567,7 +571,7 @@ export default function LivePreview({ apiBase }: Props) {
               padding: 10,
             }}
           >
-            <div style={{ fontSize: 9, color: rgba(ink, 0.6), fontWeight: 500, ...fP }}>Spent</div>
+            <div style={{ fontSize: 9, color: rgba(canvas, 0.7), fontWeight: 500, ...fP }}>Spent</div>
             <div
               style={{
                 fontSize: 14,
@@ -586,7 +590,7 @@ export default function LivePreview({ apiBase }: Props) {
         <div
           style={{
             fontSize: 9,
-            color: rgba(ink, 0.55),
+            color: rgba(canvas, 0.7),
             fontWeight: 600,
             textTransform: 'uppercase',
             letterSpacing: '0.05em',
@@ -639,15 +643,24 @@ export default function LivePreview({ apiBase }: Props) {
             display: 'flex',
             justifyContent: 'space-around',
             alignItems: 'center',
-            padding: '12px 0',
+            padding: '10px 0',
             borderTop: `0.5px solid ${rgba(ink, 0.08)}`,
             margin: '10px -12px 0',
           }}
         >
-          <div style={{ width: 18, height: 3, background: primary, borderRadius: 2 }} />
-          <div style={{ width: 5, height: 5, background: rgba(ink, 0.25), borderRadius: '50%' }} />
-          <div style={{ width: 5, height: 5, background: rgba(ink, 0.25), borderRadius: '50%' }} />
-          <div style={{ width: 5, height: 5, background: rgba(ink, 0.25), borderRadius: '50%' }} />
+          <div style={{ color: primary, display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 3 }}>
+            <Icon name='home' size={18} strokeWidth={2} />
+            <div style={{ width: 16, height: 2, background: primary, borderRadius: 1 }} />
+          </div>
+          <div style={{ color: rgba(canvas, 0.55), paddingBottom: 5 }}>
+            <Icon name='search' size={18} strokeWidth={2} />
+          </div>
+          <div style={{ color: rgba(canvas, 0.55), paddingBottom: 5 }}>
+            <Icon name='list' size={18} strokeWidth={2} />
+          </div>
+          <div style={{ color: rgba(canvas, 0.55), paddingBottom: 5 }}>
+            <Icon name='user' size={18} strokeWidth={2} />
+          </div>
         </div>
       </div>
     </div>
@@ -695,6 +708,23 @@ export default function LivePreview({ apiBase }: Props) {
           {view !== 'web' && (
             <div className='vk-mobile-mount'>{MobileMockup}</div>
           )}
+        </div>
+
+        {/* Icons showcase — your theme applied to common UI icons */}
+        <div className='vk-icons-block'>
+          <div className='vk-icons-block-label'>Icons</div>
+          <div className='vk-icons-grid'>
+            {SHOWCASE_ICONS.map((iconName) => (
+              <div
+                key={iconName}
+                className='vk-icon-cell'
+                style={{ background: canvas, color: ink }}
+                title={iconName}
+              >
+                <Icon name={iconName} size={18} strokeWidth={1.8} />
+              </div>
+            ))}
+          </div>
         </div>
       </div>
 

@@ -112,6 +112,34 @@ const CURATED: GFItem[] = [
       '900italic',
     ],
   },
+  {
+    family: 'Plus Jakarta Sans',
+    variants: ['200', '300', '400', '500', '600', '700', '800'],
+  },
+  {
+    family: 'DM Sans',
+    variants: ['100', '300', '400', '500', '600', '700', '800', '900'],
+  },
+  {
+    family: 'Lora',
+    variants: ['400', '500', '600', '700'],
+  },
+  {
+    family: 'Space Grotesk',
+    variants: ['300', '400', '500', '600', '700'],
+  },
+  {
+    family: 'Bricolage Grotesque',
+    variants: ['200', '300', '400', '500', '600', '700', '800'],
+  },
+  {
+    family: 'JetBrains Mono',
+    variants: ['100', '200', '300', '400', '500', '600', '700', '800'],
+  },
+  {
+    family: 'Instrument Serif',
+    variants: ['400', '400italic'],
+  },
 ]
 
 export function useGoogleFontsCatalog() {

@@ -1659,6 +1659,198 @@ body {
 }
 
 /* ───────────────────────────────────────────────────────── */
+/* Starter templates picker                                  */
+/* ───────────────────────────────────────────────────────── */
+.vk-template-intro {
+  margin: 0 0 12px;
+  font-size: 12px;
+  line-height: 1.5;
+  color: rgba(26, 26, 26, 0.55);
+  font-family: var(--vk-font-sans);
+}
+
+.vk-template-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+}
+
+.vk-template-card {
+  appearance: none;
+  border: 0.5px solid rgba(26, 26, 26, 0.08);
+  background: var(--vk-surface);
+  border-radius: 10px;
+  padding: 10px;
+  text-align: left;
+  cursor: pointer;
+  font-family: var(--vk-font-sans);
+  transition: border-color 0.15s ease, background 0.15s ease,
+    transform 0.05s ease;
+
+  &:hover {
+    border-color: rgba(26, 26, 26, 0.2);
+    background: var(--vk-surface-muted);
+  }
+
+  &:active {
+    transform: scale(0.98);
+  }
+
+  &:focus-visible {
+    outline: 2px solid var(--vk-azure);
+    outline-offset: 2px;
+  }
+}
+
+.vk-template-swatches {
+  display: flex;
+  height: 24px;
+  border-radius: 5px;
+  overflow: hidden;
+  border: 0.5px solid rgba(26, 26, 26, 0.05);
+  margin-bottom: 8px;
+
+  > span {
+    flex: 1;
+    height: 100%;
+  }
+}
+
+.vk-template-name {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--vk-ink);
+  letter-spacing: -0.01em;
+  line-height: 1.2;
+  margin-bottom: 3px;
+}
+
+.vk-template-desc {
+  font-size: 10px;
+  color: rgba(26, 26, 26, 0.55);
+  line-height: 1.4;
+  overflow: hidden;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+}
+
+/* ───────────────────────────────────────────────────────── */
+/* Font pairings picker (.vk-fpair-* — distinct from           */
+/* the contrast checker's .vk-pair-* classes)                 */
+/* ───────────────────────────────────────────────────────── */
+.vk-fpair-intro {
+  margin: 0 0 10px;
+  font-size: 12px;
+  line-height: 1.5;
+  color: rgba(26, 26, 26, 0.55);
+  font-family: var(--vk-font-sans);
+}
+
+.vk-fpair-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 6px;
+}
+
+.vk-fpair-card {
+  appearance: none;
+  border: 0.5px solid rgba(26, 26, 26, 0.08);
+  background: var(--vk-surface);
+  border-radius: 8px;
+  padding: 9px 10px;
+  text-align: left;
+  cursor: pointer;
+  font-family: var(--vk-font-sans);
+  transition: background 0.15s ease, border-color 0.15s ease,
+    transform 0.05s ease;
+
+  &:hover {
+    border-color: rgba(26, 26, 26, 0.18);
+    background: var(--vk-surface-muted);
+  }
+
+  &:active {
+    transform: scale(0.98);
+  }
+
+  &.is-active {
+    border-color: var(--vk-violet);
+    background: rgba(131, 56, 236, 0.04);
+  }
+
+  &:focus-visible {
+    outline: 2px solid var(--vk-azure);
+    outline-offset: 2px;
+  }
+}
+
+.vk-fpair-samples {
+  display: flex;
+  align-items: baseline;
+  gap: 4px;
+  margin-bottom: 4px;
+}
+
+.vk-fpair-sample-h {
+  font-size: 20px;
+  font-weight: 700;
+  letter-spacing: -0.03em;
+  color: var(--vk-ink);
+  line-height: 1;
+}
+
+.vk-fpair-sample-b {
+  font-size: 13px;
+  font-weight: 400;
+  color: rgba(26, 26, 26, 0.7);
+  line-height: 1;
+}
+
+.vk-fpair-name {
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--vk-ink);
+  letter-spacing: -0.01em;
+  line-height: 1.2;
+}
+
+/* ───────────────────────────────────────────────────────── */
+/* Icons showcase grid (inside Live Preview canvas)          */
+/* ───────────────────────────────────────────────────────── */
+.vk-icons-block {
+  margin-top: 20px;
+  padding-top: 18px;
+  border-top: 0.5px solid rgba(26, 26, 26, 0.06);
+}
+
+.vk-icons-block-label {
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: rgba(26, 26, 26, 0.45);
+  margin: 0 0 10px;
+  font-family: var(--vk-font-sans);
+}
+
+.vk-icons-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(44px, 1fr));
+  gap: 6px;
+}
+
+.vk-icon-cell {
+  aspect-ratio: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 8px;
+  border: 0.5px solid rgba(26, 26, 26, 0.08);
+  transition: background 0.15s ease;
+}
+
+/* ───────────────────────────────────────────────────────── */
 /* Modal (delete confirmation)                               */
 /* ───────────────────────────────────────────────────────── */
 .vk-modal-backdrop {

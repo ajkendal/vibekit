@@ -31,14 +31,31 @@ export default function ContrastChecker() {
   // Pairs are built from the user's own theme tokens — neutral_light / mid /
   // dark plus their brand colors. The "Light"/"Dark"/"Mid" labels refer to
   // what the user picked in Color tokens, not VibeKit's design system.
+  //
+  // The matrix runs every brand color (primary/secondary/tertiary) as text
+  // on every neutral background (light/mid/dark) — and also tests Light/Dark
+  // as text on the brand colors, for button labels and inverse layouts.
   const pairs: Pair[] = useMemo(
     () => [
+      // Text on the Light surface
       { title: 'Dark on Light', fg: dark, bg: light },
       { title: 'Mid on Light', fg: mid, bg: light },
       { title: 'Primary on Light', fg: primary, bg: light },
       { title: 'Secondary on Light', fg: secondary, bg: light },
       { title: 'Tertiary on Light', fg: tertiary, bg: light },
+
+      // Text on the Mid surface
+      { title: 'Primary on Mid', fg: primary, bg: mid },
+      { title: 'Secondary on Mid', fg: secondary, bg: mid },
+      { title: 'Tertiary on Mid', fg: tertiary, bg: mid },
+
+      // Text on the Dark surface
       { title: 'Light on Dark', fg: light, bg: dark },
+      { title: 'Primary on Dark', fg: primary, bg: dark },
+      { title: 'Secondary on Dark', fg: secondary, bg: dark },
+      { title: 'Tertiary on Dark', fg: tertiary, bg: dark },
+
+      // Neutrals on brand colors — for button text and inverse layouts
       { title: 'Light on Primary', fg: light, bg: primary },
       { title: 'Dark on Primary', fg: dark, bg: primary },
       { title: 'Light on Secondary', fg: light, bg: secondary },
